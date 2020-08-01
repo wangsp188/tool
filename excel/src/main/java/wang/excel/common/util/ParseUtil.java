@@ -304,11 +304,14 @@ public class ParseUtil {
 			}
 
 		} catch (Exception e) {
-			List<String> strings = new ArrayList<>(dic.keySet());
-			if(strings.size()>10){
-				strings = strings.subList(0, 10);
+			List<String> keys = new ArrayList<>(dic.keySet());
+			String tip ;
+			if(keys.size()>10){
+				tip = keys.subList(0, 10).toString()+"......";
+			}else {
+				tip = keys.toString();
 			}
-			throw new RuntimeException("该数据项有固定匹配规则,可选值有" + strings + (multiChoice ? "(支持多个,逗号隔开)," : ",") + "请规范填写!");
+			throw new RuntimeException("该数据项有固定匹配规则,可选值有" + tip + (multiChoice ? "(支持多个,逗号隔开)," : ",") + "请规范填写!");
 		}
 		throw new IllegalArgumentException("字典类型不适配,支持字符/整数");
 	}
@@ -333,12 +336,13 @@ public class ParseUtil {
 		try {
 			// 将读取到的值转换为字段支持的值
 			if (fieldType.equals(String.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写文本";
+				errDesc = "[" + cellValue + "]," + "请填写文本";
 				if (result instanceof Double) {// 数值
 					result = CommonUtil.formatNum(result.toString(), 0, 3);
 				} else if (result instanceof Date) {// 时间
 					Date d = (Date) result;
-					if (d.getHours() == 0 && d.getMinutes() == 0) {
+					Calendar calendar = Calendar.getInstance();
+					if (calendar.get(Calendar.HOUR_OF_DAY) == 0 && calendar.get(Calendar.MINUTE) == 0) {
 						result = wang.util.DateUtil.formatDate(d, "yyyy-MM-dd");
 					} else {
 						result = wang.util.DateUtil.formatDate(d, "yyyy-MM-dd HH:ss:mm");
@@ -352,14 +356,14 @@ public class ParseUtil {
 					}
 				}
 			} else if (fieldType.equals(Integer.class) || fieldType.equals(int.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写整数";
+				errDesc = "[" + cellValue + "]," + "请填写整数";
 				if (result instanceof Double) {
 					result = ((Double) result).intValue();
 				} else if (result instanceof String) {// 有可能是字典
 					result = Double.valueOf((String) result).intValue();
 				}
 			} else if (fieldType.equals(Date.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写时间或规范文本eg:2017/08/09";
+				errDesc = "[" + cellValue + "]," + "请填写时间或规范文本eg:2017/08/09";
 				if (result instanceof Long) {
 					result = new Date((Long) result);
 				} else if (result instanceof String || result instanceof Number) {
@@ -375,10 +379,10 @@ public class ParseUtil {
 				}
 
 			} else if (fieldType.equals(Double.class) || fieldType.equals(double.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写小数或整数";
+				errDesc = "[" + cellValue + "]," + "请填写小数或整数";
 				result = Double.parseDouble(CommonUtil.formatNum(result.toString(), 0, 3));
 			} else if (fieldType.equals(Boolean.class) || fieldType.equals(boolean.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "该项属于是否关系,请填写(true,false,是,否,1,0)";
+				errDesc = "[" + cellValue + "]," + "该项属于是否关系,请填写(true,false,是,否,1,0)";
 				if (result instanceof String) {
 					String cb = String.valueOf(result);
 					result = cb.equals("true") || result.equals("1");
@@ -389,27 +393,27 @@ public class ParseUtil {
 					result = (Integer) result == 1;
 				}
 			} else if (fieldType.equals(Character.class) || fieldType.equals(char.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写单字符";
+				errDesc = "[" + cellValue + "]," + "请填写单字符";
 				if (!(result instanceof String)) {
 					result = String.valueOf(result);
 				}
 				result = ((String) result).charAt(0);
 			} else if (fieldType.equals(Byte.class) || fieldType.equals(byte.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写小于128的整数";
+				errDesc = "[" + cellValue + "]," + "请填写小于128的整数";
 				if (result instanceof Double) {
 					result = ((Double) result).byteValue();
 				} else if (result instanceof String) {// 有可能是字典
 					result = Double.valueOf((String) result).byteValue();
 				}
 			} else if (fieldType.equals(Short.class) || fieldType.equals(short.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写小于32767的整数";
+				errDesc = "[" + cellValue + "]," + "请填写小于32767的整数";
 				if (result instanceof Double) {
 					result = ((Double) result).shortValue();
 				} else if (result instanceof String) {// 有可能是字典
 					result = Double.valueOf((String) result).shortValue();
 				}
 			} else if (fieldType.equals(Float.class) || fieldType.equals(float.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写小数或整数";
+				errDesc = "[" + cellValue + "]," + "请填写小数或整数";
 				if (result instanceof Double) {
 					result = ((Double) result).floatValue();
 				} else if (result instanceof String) {
@@ -418,7 +422,7 @@ public class ParseUtil {
 					throw new RuntimeException();
 				}
 			} else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
-				errDesc = "数据不规范[" + cellValue + "]," + "请填写整数";
+				errDesc = "[" + cellValue + "]," + "请填写整数";
 				if (result instanceof Double) {
 					result = ((Double) result).longValue();
 				} else if (result instanceof String) {

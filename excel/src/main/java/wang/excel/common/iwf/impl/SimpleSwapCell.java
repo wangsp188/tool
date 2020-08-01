@@ -87,7 +87,9 @@ public class SimpleSwapCell implements SwapCell {
 				date = (Date) value;
 			}
 			String  dataStr = null;
-			if (date.getHours() == 0 && date.getMinutes() == 0) {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(date);
+			if (calendar.get(Calendar.HOUR_OF_DAY) == 0 && calendar.get(Calendar.MINUTE) == 0) {
 				dataStr = DateUtil.formatDate(date,"yyyy/MM/dd");
 			} else {
 				dataStr = DateUtil.formatDate(date,"yyyy/MM/dd HH:mm");
