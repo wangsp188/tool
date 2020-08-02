@@ -1,12 +1,5 @@
 package wang.excel.template.parse;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -14,14 +7,19 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-
 import wang.excel.common.iwf.ParseConvert;
 import wang.excel.common.model.*;
 import wang.excel.common.util.ExcelUtil;
 import wang.excel.common.util.ParseUtil;
-import wang.excel.template.parse.iwf.ParseModify;
 import wang.excel.template.parse.model.TemplateCoordinate;
 import wang.util.ReflectUtil;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 普通模板解析构建实现 依赖于 @Excel
@@ -587,4 +585,21 @@ public class ExcelTemplateParseServer {
 		this.errorCounter = errorCounter;
 	}
 
+	/**
+	 * 模板解析时的自定义修改
+	 *
+	 * @author wangshaopeng
+	 *
+	 */
+	public static interface ParseModify {
+		/**
+		 *
+		 * @param target 当前作用实体
+		 * @param name   属性名
+		 * @param val    值
+		 * @param record 坐标信息
+		 * @throws 如果有异常信息,请直接抛出,并进行错误说明
+		 */
+		void modify(Object target, String name, Object val, TemplateCoordinate record) throws Exception;
+	}
 }

@@ -1,11 +1,8 @@
-import java.util.List;
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.PictureData;
-
-import wang.excel.common.iwf.DicErr;
 import wang.excel.common.iwf.Excel;
 
+import java.util.List;
 public class Person {
 
 	@Excel(name = "姓名", width = 60)
@@ -15,14 +12,14 @@ public class Person {
 	@Excel(name = "年龄", order = 2, nullStr = "不知道多大")
 	private Integer age;
 
-	@Excel(name = "性别", replace = { "1::男", "2::女" }, dicErr = DicErr.throw_err, multiChoice = false, order = 1, methodParseConvert = "importSex")
-	private String sex;
+	@Excel(name = "性别")
+	private Sex sex;
 
 	// 如果是图片,首先这个列是地址(图片访问地址)
 	@Excel(name = "头像", height = 30)
 	private String img;
 
-	public Person(String name, Integer age, String sex) {
+	public Person(String name, Integer age, Sex sex) {
 		this.name = name;
 		this.age = age;
 		this.sex = sex;
@@ -60,11 +57,11 @@ public class Person {
 		this.age = age;
 	}
 
-	public String getSex() {
+	public Sex getSex() {
 		return sex;
 	}
 
-	public void setSex(String sex) {
+	public void setSex(Sex sex) {
 		this.sex = sex;
 	}
 

@@ -1,15 +1,7 @@
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import javax.swing.filechooser.FileSystemView;
-
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import wang.excel.advanced.compose.ExcelComposeServer;
 import wang.excel.advanced.compose.iwf.WorkbookProcess;
 import wang.excel.advanced.compose.model.WorkbookPart;
@@ -17,6 +9,12 @@ import wang.excel.common.iwf.SheetCopy;
 import wang.excel.normal.produce.ExcelNormalProduceServer;
 import wang.excel.normal.produce.iwf.SheetModule;
 import wang.excel.normal.produce.iwf.impl.SimpleBeanSheetModule;
+
+import javax.swing.filechooser.FileSystemView;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class ComposeTest {
 
@@ -56,11 +54,11 @@ public class ComposeTest {
 		Class type = Person.class;
 		ArrayList<Object> datas = new ArrayList<>();
 		// 数据
-		Person person = new Person("王少鹏", null, "1");
+		Person person = new Person("王少鹏", null, Sex.man);
 		person.setImg("C:\\Users\\Administrator\\Desktop\\7.png");
 //        datas.add(person);
 		for (int i = 0; i < 15000; i++) {
-			datas.add(new Person("石春蕊", 111, "12"));
+			datas.add(new Person("石春蕊", 111, Sex.man));
 		}
 //
 //

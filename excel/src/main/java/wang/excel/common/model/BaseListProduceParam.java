@@ -22,6 +22,7 @@ public class BaseListProduceParam extends BaseProduceParam {
 
 	public BaseListProduceParam() {
 		super();
+		//默认宽高
 		this.width = 10;
 		this.height = 10;
 	}

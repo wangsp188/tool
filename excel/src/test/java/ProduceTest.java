@@ -1,20 +1,10 @@
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.filechooser.FileSystemView;
-
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import wang.excel.ExcelProduceUtil;
+import wang.excel.common.iwf.ImgProduceStrategy;
 import wang.excel.common.model.BaseListProduceParam;
 import wang.excel.common.model.CellData;
 import wang.excel.normal.produce.ExcelNormalProduceServer;
@@ -23,6 +13,15 @@ import wang.excel.normal.produce.iwf.SheetModule;
 import wang.excel.normal.produce.iwf.WrapO2CellData;
 import wang.excel.normal.produce.iwf.impl.SimpleBeanSheetModule;
 import wang.excel.normal.produce.iwf.impl.WrapO2CellMiddleware;
+
+import javax.swing.filechooser.FileSystemView;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ProduceTest {
 
@@ -76,10 +75,10 @@ public class ProduceTest {
 		// 类
 		type = Person.class;
 		// 数据
-		Person person = new Person("王少鹏", null, "1");
+		Person person = new Person("王少鹏", null, Sex.man);
 		person.setImg("C:\\Users\\Administrator\\Desktop\\7.png");
 		datas.add(person);
-		datas.add(new Person("石春蕊", 111, "12"));
+		datas.add(new Person("石春蕊", 111, Sex.man));
 
 		// 定义普通 模块
 		SheetModule module = new SimpleBeanSheetModule<T>(type, datas, title);
@@ -104,8 +103,8 @@ public class ProduceTest {
 		// 类
 		type = Person.class;
 		// 数据
-		datas.add(new Person("王少鹏", 11, "1"));
-		datas.add(new Person("石春蕊", 111, "12"));
+		datas.add(new Person("王少鹏", 11, Sex.man));
+		datas.add(new Person("石春蕊", 111, Sex.man));
 
 		String[] includs = new String[] { "name", "age" };
 		String[] excluds = new String[] { "age" };
@@ -217,14 +216,14 @@ public class ProduceTest {
 		for (int i = 0; i < 100; i++) {
 			HashMap<String, Object> map = new HashMap<>();
 			map.put("name", "王少鹏" + i);
-			map.put("age", 18 + i);
+			map.put("age", ImgProduceStrategy.achoo_2);
 			data.add(map);
 		}
 		Map<String, BaseListProduceParam> paramMap = new HashMap<>();
 		BaseListProduceParam nameParam = new BaseListProduceParam();
 
-		paramMap.put("name", nameParam);
-		paramMap.put("age", nameParam);
+		paramMap.put("name", new BaseListProduceParam("姓名"));
+		paramMap.put("age", new BaseListProduceParam("不知道啥"));
 
 		workbook = ExcelProduceUtil.mapProduce(data, "map导出", new String[] { "name", "age" }, paramMap);
 

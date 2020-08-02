@@ -1,5 +1,8 @@
 package wang.util;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -10,13 +13,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
 /**
  * 不好专门分类的工具函数和常量
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 @SuppressWarnings(value = { "rawtypes", "unchecked" })

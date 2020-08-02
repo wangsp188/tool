@@ -1,18 +1,17 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-
-import javax.swing.filechooser.FileSystemView;
-
 import org.apache.poi.ss.usermodel.Sheet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import wang.excel.ExcelParseUtil;
+import wang.excel.common.iwf.ImgProduceStrategy;
 import wang.excel.common.model.ParseResult;
 import wang.excel.normal.parse.iwf.Sheet2ParseParam;
 import wang.excel.normal.parse.model.ParseParam;
+
+import javax.swing.filechooser.FileSystemView;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 public class ParseTest {
 
@@ -51,7 +50,7 @@ public class ParseTest {
 //        ,Row-------一行 ------根据行下标获取
 //        ,Cell;-----一个单元格 -----根据行列下标获取
 
-		name = "24.xls";
+		name = "49.xls";
 
 		type = Person.class;
 		final ParseParam common = ParseParam.common(type);
@@ -174,5 +173,21 @@ public class ParseTest {
 
 		result = ExcelParseUtil.excelParse(new FileInputStream(root + name), sheet2ParseParam);
 	}
+
+
+	@Test
+	public void t7(){
+//		Class<Integer> integerClass = Integer.class;
+		Class excelClass = ImgProduceStrategy.class;
+
+		System.out.println(excelClass.isEnum());
+		for (Object enumConstant : excelClass.getEnumConstants()) {
+			Enum e = (Enum) enumConstant;
+			System.out.println(Enum.valueOf(excelClass, e.name()+1));
+//			System.out.println(e.name());
+		}
+	}
+
+
 
 }

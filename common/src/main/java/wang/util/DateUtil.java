@@ -21,12 +21,12 @@ public class DateUtil {
 	 * 字符传依据partten转换成日期
 	 * 
 	 * @param result
-	 * @param partten
+	 * @param format
 	 * @return
 	 */
-	public static Date parseDate(String result, String partten) throws IllegalArgumentException {
+	public static Date parseDate(String result, String format) throws IllegalArgumentException {
 		try {
-			SimpleDateFormat dateFormat = new SimpleDateFormat(partten);
+			SimpleDateFormat dateFormat = new SimpleDateFormat(format);
 			return dateFormat.parse(result);
 		} catch (ParseException e) {
 			throw new IllegalArgumentException("日期转换失败");

@@ -22,7 +22,7 @@ public class ListTitleModule extends SheetModule.Title {
 	/**
 	 * 标题合并单元格的格子数量
 	 */
-	private int mergedSize = 1;
+	private int mergedSize ;
 
 	/**
 	 * 标题单元格样式
@@ -33,10 +33,11 @@ public class ListTitleModule extends SheetModule.Title {
 	}
 
 	public ListTitleModule() {
-
+		mergedSize = 1;
 	}
 
 	public ListTitleModule(String title, int mergedSize) {
+		this();
 		this.title = title;
 		this.mergedSize = mergedSize;
 	}

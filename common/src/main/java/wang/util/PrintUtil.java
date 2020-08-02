@@ -1,14 +1,14 @@
 package wang.util;
 
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.collections.CollectionUtils;
+
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.collections.CollectionUtils;
 
 /**
  * 主要用于打印测试
@@ -23,7 +23,6 @@ public class PrintUtil {
 	 * 集合
 	 * 
 	 * @param c
-	 * @param isPrint
 	 * @return
 	 */
 	public static String collection(Collection c) {
@@ -46,7 +45,6 @@ public class PrintUtil {
 	 * 数组
 	 * 
 	 * @param os
-	 * @param isPrint
 	 * @return
 	 */
 	public static String array(Object os) {
@@ -103,10 +101,9 @@ public class PrintUtil {
 	 * map
 	 * 
 	 * @param map
-	 * @param isPrint
 	 * @return
 	 */
-	public static String map(Map map, boolean isPrint) {
+	public static String map(Map map) {
 		Set<Entry<Object, Object>> entrySet = map.entrySet();
 		StringBuilder sb = new StringBuilder();
 		sb.append("{ ");
@@ -120,7 +117,6 @@ public class PrintUtil {
 	 * 对象,自动判断
 	 * 
 	 * @param o
-	 * @param isPrint 是否控制台打印
 	 * @return
 	 */
 	public static String object(Object o) {
@@ -133,7 +129,7 @@ public class PrintUtil {
 			string = array(o);
 
 		} else if (o instanceof Map) {// map
-			string = map((Map) o, false);
+			string = map((Map) o);
 		} else if (o instanceof Collection) {// 集合
 			string = collection((Collection) o);
 		} else if (ReflectUtil.isOverWriteToString(o)) {// 自定义重写方法

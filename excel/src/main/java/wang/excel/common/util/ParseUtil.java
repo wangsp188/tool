@@ -1,9 +1,5 @@
 package wang.excel.common.util;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.*;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -11,11 +7,14 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.PictureData;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-
 import wang.excel.common.iwf.*;
 import wang.excel.common.model.BeanParseParam;
 import wang.util.CommonUtil;
 import wang.util.ReflectUtil;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ParseUtil {
@@ -390,7 +389,11 @@ public class ParseUtil {
 					}
 					result = (Integer) result == 1;
 				}
-			} else if (fieldType.equals(Character.class) || fieldType.equals(char.class)) {
+			}else if(fieldType.isEnum()){
+				//枚举
+				errDesc = "["+cellValue+"],该项有固定选项,可选项有"+ Arrays.toString(fieldType.getEnumConstants());
+				result = Enum.valueOf(fieldType,cellValue.toString());
+			}else  if (fieldType.equals(Character.class) || fieldType.equals(char.class)) {
 				errDesc = "[" + cellValue + "],请填写单字符";
 				if (!(result instanceof String)) {
 					result = String.valueOf(result);

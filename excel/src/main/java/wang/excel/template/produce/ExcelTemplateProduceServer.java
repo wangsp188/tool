@@ -1,12 +1,5 @@
 package wang.excel.template.produce;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.SetUtils;
@@ -14,7 +7,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-
 import wang.excel.common.iwf.ProduceConvert;
 import wang.excel.common.iwf.SwapCell;
 import wang.excel.common.iwf.impl.SimpleSwapCell;
@@ -22,9 +14,14 @@ import wang.excel.common.model.BaseProduceParam;
 import wang.excel.common.model.BeanProduceParam;
 import wang.excel.common.model.CellData;
 import wang.excel.common.util.ProduceUtil;
-import wang.excel.template.produce.iwf.ProduceModify;
-import wang.excel.template.produce.iwf.ProduceSkip;
 import wang.util.ReflectUtil;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 普通模板解析构建实现 依赖于 @Excel
@@ -35,7 +32,6 @@ import wang.util.ReflectUtil;
  *
  * @author wangshaopeng
  *
- * @param <E>
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class ExcelTemplateProduceServer {
@@ -420,4 +416,36 @@ public class ExcelTemplateProduceServer {
 		this.convertMap = convertMap;
 	}
 
+	/**
+	 * 构建时跳过某表格
+	 */
+	public static interface ProduceSkip {
+		/**
+		 * @param sheet        表格
+		 * @param t            检验实体
+		 * @param adherentInfo 检验实体
+		 * @return 构建时是否跳过sheet
+		 */
+		boolean skip(Sheet sheet, Object t, Map<String, Object> adherentInfo);
+	}
+
+	/**
+	 * 构建修正接口
+	 *
+	 * @author wangshaopeng
+	 *
+	 */
+	public static interface ProduceModify {
+
+		/**
+		 * 给单元格赋值后的操作
+		 *
+		 * @param cell        当前单元格
+		 * @param cellData    刚才赋值的值
+		 * @param allKey      匹配的key
+		 * @param currentType 当前实体类型 如果是多的,其实这是个list
+		 * @param fieldName   实体属性名 如果是多的,其实这是个list的泛型
+		 */
+		void modify(Cell cell, CellData cellData, String allKey, Class currentType, String fieldName);
+	}
 }

@@ -1,14 +1,14 @@
 package wang.excel.common.iwf;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.springframework.util.ReflectionUtils;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * 图片构建策略
@@ -110,7 +110,7 @@ public enum ImgProduceStrategy {
 		if (field == null) {
 			throw new IllegalArgumentException("resize插入图片,字段不可为空");
 		}
-		String name = new StringBuilder().append("resize_").append(field.getName()).toString();
+		String name = "resize_" + field.getName();
 		Method method = ReflectionUtils.findMethod(field.getDeclaringClass(), name, Cell.class, File.class, int.class);
 		if (!Modifier.isStatic(method.getModifiers())) {
 			throw new IllegalArgumentException("resize函数必须是静态的");
