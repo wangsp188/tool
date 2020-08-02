@@ -30,7 +30,7 @@ public enum BizProcessEnum {
 	 */
 	private String processExpression;
 
-	BizProcessEnum(String desc, String settings,  String processExpression) {
+	BizProcessEnum(String desc, String settings, String processExpression) {
 		this.processExpression = processExpression;
 		this.settings = settings;
 		this.desc = desc;
@@ -55,7 +55,6 @@ public enum BizProcessEnum {
 	public String getProcessExpression() {
 		return processExpression;
 	}
-
 
 	/**
 	 * 默认方式构建任务流 如果需要特殊操作,则枚举自行实现该方法

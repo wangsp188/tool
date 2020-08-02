@@ -1,17 +1,18 @@
 package wang.excel.normal.parse.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
+
 import wang.excel.common.util.ExcelUtil;
 import wang.excel.normal.parse.iwf.TitleCellFinder;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * 标题寻找超类
@@ -35,16 +36,16 @@ public abstract class TitleCellAbsFinder implements TitleCellFinder {
 
 	@Override
 	public final List<Cell> find(Sheet sheet) {
-		int rownum = titleRow();
-		Row titleRow = sheet.getRow(rownum);
-		Collection<Integer> indexs = colNums(sheet);
-		if (titleRow == null || CollectionUtils.isEmpty(indexs)) {
+		int rowNum = titleRow();
+		Row titleRow = sheet.getRow(rowNum);
+		Collection<Integer> colNums = colNums(sheet);
+		if (titleRow == null || CollectionUtils.isEmpty(colNums)) {
 			return Collections.emptyList();
 		}
 		ArrayList<Cell> cells = new ArrayList<>();
-		for (Integer index : indexs) {
+		for (Integer index : colNums) {
 			// 判断是否是合并单元格
-			CellRangeAddress address = ExcelUtil.isMergedRegionAndReturn(sheet, rownum, index);
+			CellRangeAddress address = ExcelUtil.isMergedRegionAndReturn(sheet, rowNum, index);
 
 			Cell cell;
 			if (address != null) {
@@ -59,6 +60,5 @@ public abstract class TitleCellAbsFinder implements TitleCellFinder {
 
 		return cells;
 	}
-
 
 }

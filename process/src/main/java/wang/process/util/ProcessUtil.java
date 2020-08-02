@@ -1,6 +1,7 @@
 package wang.process.util;
 
 import org.springframework.util.Assert;
+
 import wang.process.core.Step;
 import wang.process.core.Task;
 import wang.process.core.Wrapper;
@@ -8,7 +9,6 @@ import wang.process.filter.TaskFilter;
 import wang.process.filter.TaskFilterWrapper;
 
 public class ProcessUtil {
-
 
 	/**
 	 * 包装最外部的Task (最内层不会会继续使用,采用安全的策略直接包,但是如果包装较多,会导致调用链路变长)
@@ -18,7 +18,7 @@ public class ProcessUtil {
 	 */
 	public static void wrapOuterTask(Step step, TaskFilter filter) {
 		Task task = step.getTask();
-		if(hasSpecialFilter(task,filter)){
+		if (hasSpecialFilter(task, filter)) {
 			return;
 		}
 		step.setTask(new TaskFilterWrapper(task, filter));
@@ -44,8 +44,8 @@ public class ProcessUtil {
 		if (wrapper == null) {
 			step.setTask(new TaskFilterWrapper(task, filter));
 		} else {
-			//现在wrapper里找,如果有,啥也不要干
-			if (hasSpecialFilter(task,filter)) {
+			// 现在wrapper里找,如果有,啥也不要干
+			if (hasSpecialFilter(task, filter)) {
 				return;
 			}
 			Task delegate = wrapper.getDelegate();
@@ -94,8 +94,8 @@ public class ProcessUtil {
 	 * @return
 	 */
 	private static boolean hasSpecialFilter(Task task, TaskFilter compareFilter) {
-		Assert.notNull(task,"task不可为空!");
-		Assert.notNull(compareFilter,"compareFilter 不可为空!");
+		Assert.notNull(task, "task不可为空!");
+		Assert.notNull(compareFilter, "compareFilter 不可为空!");
 		if (task instanceof TaskFilterWrapper) {
 			for (TaskFilter filter : ((TaskFilterWrapper) task).getFilters()) {
 				if (filter.getClass().equals(compareFilter.getClass())) {

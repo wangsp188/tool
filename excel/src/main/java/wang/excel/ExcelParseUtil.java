@@ -1,18 +1,19 @@
 package wang.excel;
 
+import java.io.InputStream;
+
 import org.springframework.util.Assert;
+
 import wang.excel.common.model.ParseOneResult;
 import wang.excel.common.model.ParseResult;
 import wang.excel.normal.parse.NormalParseServer;
 import wang.excel.normal.parse.iwf.Sheet2ParseParam;
 import wang.excel.template.parse.ExcelTemplateParseServer;
 
-import java.io.InputStream;
-
 /**
  * 解析
  * 
- * @author Administrator
+ * @author wangshaopeng
  * 
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -30,7 +31,7 @@ public class ExcelParseUtil {
 		try {
 			Assert.notNull(resource, "必要参数,源不可为空");
 			Assert.notNull(server, "必要参数,解析实现不可为空");
-			ParseOneResult<E> result = server.parse(resource,typeClass);
+			ParseOneResult<E> result = server.parse(resource, typeClass);
 			Assert.notNull(result, "解析结果不规范");
 			return result.one2ParseResult();
 		} catch (Exception e) {
@@ -38,7 +39,6 @@ public class ExcelParseUtil {
 		}
 
 	}
-
 
 	/**
 	 * 便捷调用
@@ -52,6 +52,5 @@ public class ExcelParseUtil {
 		NormalParseServer server = new NormalParseServer();
 		return server.excelParse(is, parseParam);
 	}
-
 
 }

@@ -5,14 +5,13 @@ import org.apache.poi.ss.usermodel.Sheet;
 /**
  * 表格拼接模块
  */
-public interface SheetModule extends Comparable<SheetModule> {
+public interface SheetModule {
 	/**
-	 * 返回false不执行后面的了
+	 * 拼接内容
 	 * 
 	 * @param sheet
-	 * @return
 	 */
-	boolean sheet(Sheet sheet);
+	void sheet(Sheet sheet);
 
 	/**
 	 * 序号用于排序,实现类可自行实现
@@ -20,5 +19,36 @@ public interface SheetModule extends Comparable<SheetModule> {
 	 * @return
 	 */
 	int getOrder();
+
+	/**
+	 * 头
+	 */
+	abstract class Title implements SheetModule {
+		@Override
+		public int getOrder() {
+			return Integer.MIN_VALUE + 100;
+		}
+	}
+
+	/**
+	 * 身
+	 */
+	abstract class Body implements SheetModule {
+
+		@Override
+		public int getOrder() {
+			return 0;
+		}
+	}
+
+	/**
+	 * 尾
+	 */
+	abstract class Foot implements SheetModule {
+		@Override
+		public int getOrder() {
+			return Integer.MAX_VALUE - 100;
+		}
+	}
 
 }

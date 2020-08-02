@@ -7,12 +7,12 @@ import wang.excel.normal.parse.model.ParseParam;
 /**
  * 通过表格返回parseParam
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 public interface Sheet2ParseParam {
 	/**
-	 * @param sheet
+	 * @param sheet sheet
 	 * @return 如果不解析该表,则返回null
 	 */
 	ParseParam parseParam(Sheet sheet);

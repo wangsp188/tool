@@ -1,5 +1,9 @@
 package wang.excel.common.util;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -7,20 +11,16 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.PictureData;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+
 import wang.excel.common.iwf.*;
 import wang.excel.common.model.BeanParseParam;
 import wang.util.CommonUtil;
 import wang.util.ReflectUtil;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.*;
-
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ParseUtil {
 
 	private static final String[] nullStrArr = new String[] { "空", "无", "null", "/", "-" };
-
 
 	/**
 	 * 将可能不符合规范的字符串尽量解析成 形如 yyyy/MM/dd形似的字符串 并返回(只支持到天)
@@ -30,7 +30,7 @@ public class ParseUtil {
 	 * @return
 	 */
 	public static String parseStrToDateStr(String s, String[] splitArr) {
-		String reVal = "";
+		String reVal;
 		String[] fs = parseDateFormat(s, splitArr);
 		reVal = fs[0];
 		switch (Integer.parseInt(fs[1])) {
@@ -119,10 +119,8 @@ public class ParseUtil {
 			}
 
 			ds = new String[1];
-//			String sp = "";
 			for (int i = 0; ds.length == 1 && i < ss.length; i++) {
 				ds = s.split(ss[i]);
-//				sp = ss[i];
 			}
 			for (int i = 0; i < ds.length; i++) {
 				if (ds[0].length() == 2) {
@@ -139,13 +137,12 @@ public class ParseUtil {
 				}
 			}
 		}
-        StringJoiner joiner = new StringJoiner("/", "", "");
-        for (String d : ds) {
-            joiner.add(d);
-        }
-        return new String[] { joiner.toString(), ds.length + "" };
+		StringJoiner joiner = new StringJoiner("/", "", "");
+		for (String d : ds) {
+			joiner.add(d);
+		}
+		return new String[] { joiner.toString(), ds.length + "" };
 	}
-
 
 	/**
 	 * 解析单元格
@@ -154,50 +151,50 @@ public class ParseUtil {
 	 * @param one           解析参数
 	 * @param field         当前属性
 	 * @param cell          目标单元格
-	 * @param imgs          单元格中的图片
+	 * @param img           单元格中的图片
 	 * @param typeHandleMap 类型解析器
 	 * @param <T>
 	 * @return
 	 */
-	public static <T> Object parseCell(T t, BeanParseParam one, Field field, Cell cell, List<PictureData> imgs, final Map<Class, ExcelTypeHandler> typeHandleMap) throws Exception {
+	public static <T> Object parseCell(T t, BeanParseParam one, Field field, Cell cell, List<PictureData> img, final Map<Class, ExcelTypeHandler> typeHandleMap) throws Exception {
 		ParseConvert parseConvert = one.getParseConvert();
 		// 转换接口
 		if (parseConvert != null) {
-			return parseConvert.parse(cell, imgs);
+			return parseConvert.parse(cell, img);
 		}
 
 		// 获取实际类型
 		Class fieldType = ParseUtil.getRealType(field);
 		// 方法转换
-		String importFormat = one.getBeanInnerParseConvert();
+		String importFormat = one.getMethodParseConvert();
 		if (importFormat != null) {// 有格式化,
-			return innerImportFormat(t, cell, imgs, importFormat);
+			return methodParseFormat(t, cell, img, importFormat);
 		}
 
 		// 图片
-		ImgStore imgStrategy = one.getImgStoreStrategy();
-		if (imgStrategy != null ) {// 说明是策略图片保存
-			return imgFormat(t, imgs, imgStrategy);
+		ImgStoreStrategy imgStrategy = one.getImgStoreStrategy();
+		if (imgStrategy != null) {// 说明是策略图片保存
+			return imgFormat(t, img, imgStrategy);
 		}
 
 		// 普通解析
 		String[] str2NullArr = one.getStr2NullArr();
-		Object cellval = ExcelUtil.getCellValue(cell, str2NullArr, true, -1);
+		Object cellValue = ExcelUtil.getCellValue(cell, str2NullArr, true, -1);
 
 		// 字典
 		Map<String, String> dic = one.getDicMap();
 		if (dic != null) {// 字典值转换
-			return parseDic(cellval, fieldType, dic, one.isMultiChoice(), one.getDicErr());
+			return parseDic(cellValue, fieldType, dic, one.isMultiChoice(), one.getDicErr());
 		}
 		// 类型解析器解析
-		return simpleParse(cellval, imgs, typeHandleMap, fieldType);
+		return simpleParse(cellValue, img, typeHandleMap, fieldType);
 	}
 
 	/**
 	 * 普通解析
 	 * 
 	 * @param cellVal       单元格值
-	 * @param img          图片
+	 * @param img           图片
 	 * @param typeHandleMap 类型解析器
 	 * @param fieldType     属性类型
 	 * @return
@@ -219,18 +216,18 @@ public class ParseUtil {
 	 * 图片解析
 	 * 
 	 * @param t           载体
-	 * @param img        图片
+	 * @param img         图片
 	 * @param imgStrategy 图片策略
 	 * @param <T>
 	 * @return
 	 */
-	private static <T> Object imgFormat(T t, List<PictureData> img, ImgStore imgStrategy) {
+	private static <T> Object imgFormat(T t, List<PictureData> img, ImgStoreStrategy imgStrategy) {
 		Assert.notNull(t, "载体类不可为空");
 		if (CollectionUtils.isEmpty(img)) {
 			return null;
 		}
 		try {
-			StringJoiner joiner = new StringJoiner(",","","");
+			StringJoiner joiner = new StringJoiner(",", "", "");
 			for (PictureData p : img) {
 				joiner.add(imgStrategy.uploadReturnKey(p, null));
 			}
@@ -245,12 +242,12 @@ public class ParseUtil {
 	 * 
 	 * @param t            载体对象
 	 * @param cell         单元格
-	 * @param imgs         图片
+	 * @param img          图片
 	 * @param importFormat 转换
 	 * @param <T>
 	 * @return
 	 */
-	private static <T> Object innerImportFormat(T t, Cell cell, List<PictureData> imgs, String importFormat) {
+	private static <T> Object methodParseFormat(T t, Cell cell, List<PictureData> img, String importFormat) {
 		// 是否是静态函数
 		boolean staticsMethod = importFormat.contains(".");
 		try {
@@ -261,12 +258,13 @@ public class ParseUtil {
 				Class cz = Class.forName(className);
 				Method method = cz.getDeclaredMethod(methodName, Cell.class, List.class);
 				method.setAccessible(true);
-				return method.invoke(null, cell, imgs);
+				return method.invoke(null, cell, img);
 			} else {
 				Class type = t.getClass();
 				Method formatMethod = ReflectionUtils.findMethod(type, importFormat, Cell.class, List.class);
+				Assert.notNull(formatMethod, "未在" + type + "找到指定函数" + importFormat);
 				formatMethod.setAccessible(true);
-				return formatMethod.invoke(t, cell, imgs);
+				return formatMethod.invoke(t, cell, img);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("自定义解析方法执行失败" + importFormat);
@@ -284,7 +282,7 @@ public class ParseUtil {
 	 * @return
 	 */
 	private static Object parseDic(Object cellValue, Class type, Map<String, String> dic, boolean multiChoice, DicErr dicErr) {
-		if (cellValue==null || StringUtils.isEmpty(cellValue.toString())) {
+		if (cellValue == null || StringUtils.isEmpty(cellValue.toString())) {
 			return null;
 		}
 		if (cellValue instanceof Double) {
@@ -305,10 +303,10 @@ public class ParseUtil {
 
 		} catch (Exception e) {
 			List<String> keys = new ArrayList<>(dic.keySet());
-			String tip ;
-			if(keys.size()>10){
-				tip = keys.subList(0, 10).toString()+"......";
-			}else {
+			String tip;
+			if (keys.size() > 10) {
+				tip = keys.subList(0, 10).toString() + "......";
+			} else {
 				tip = keys.toString();
 			}
 			throw new RuntimeException("该数据项有固定匹配规则,可选值有" + tip + (multiChoice ? "(支持多个,逗号隔开)," : ",") + "请规范填写!");
@@ -326,7 +324,7 @@ public class ParseUtil {
 	private static Object cell2Data(Object cellValue, Class fieldType) {
 		Object result = cellValue;
 		// 如果是空,直接返回
-		if (result==null || StringUtils.isEmpty(result.toString())) {
+		if (result == null || StringUtils.isEmpty(result.toString())) {
 			return null;
 		}
 
@@ -336,7 +334,7 @@ public class ParseUtil {
 		try {
 			// 将读取到的值转换为字段支持的值
 			if (fieldType.equals(String.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写文本";
+				errDesc = "[" + cellValue + "],请填写文本";
 				if (result instanceof Double) {// 数值
 					result = CommonUtil.formatNum(result.toString(), 0, 3);
 				} else if (result instanceof Date) {// 时间
@@ -356,14 +354,14 @@ public class ParseUtil {
 					}
 				}
 			} else if (fieldType.equals(Integer.class) || fieldType.equals(int.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写整数";
+				errDesc = "[" + cellValue + "],请填写整数";
 				if (result instanceof Double) {
 					result = ((Double) result).intValue();
 				} else if (result instanceof String) {// 有可能是字典
 					result = Double.valueOf((String) result).intValue();
 				}
 			} else if (fieldType.equals(Date.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写时间或规范文本eg:2017/08/09";
+				errDesc = "[" + cellValue + "],请填写时间或规范文本eg:2017/08/09";
 				if (result instanceof Long) {
 					result = new Date((Long) result);
 				} else if (result instanceof String || result instanceof Number) {
@@ -379,10 +377,10 @@ public class ParseUtil {
 				}
 
 			} else if (fieldType.equals(Double.class) || fieldType.equals(double.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写小数或整数";
+				errDesc = "[" + cellValue + "],请填写小数或整数";
 				result = Double.parseDouble(CommonUtil.formatNum(result.toString(), 0, 3));
 			} else if (fieldType.equals(Boolean.class) || fieldType.equals(boolean.class)) {
-				errDesc = "[" + cellValue + "]," + "该项属于是否关系,请填写(true,false,是,否,1,0)";
+				errDesc = "[" + cellValue + "],该项属于是否关系,请填写(true,false,是,否,1,0)";
 				if (result instanceof String) {
 					String cb = String.valueOf(result);
 					result = cb.equals("true") || result.equals("1");
@@ -393,27 +391,27 @@ public class ParseUtil {
 					result = (Integer) result == 1;
 				}
 			} else if (fieldType.equals(Character.class) || fieldType.equals(char.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写单字符";
+				errDesc = "[" + cellValue + "],请填写单字符";
 				if (!(result instanceof String)) {
 					result = String.valueOf(result);
 				}
 				result = ((String) result).charAt(0);
 			} else if (fieldType.equals(Byte.class) || fieldType.equals(byte.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写小于128的整数";
+				errDesc = "[" + cellValue + "],请填写小于128的整数";
 				if (result instanceof Double) {
 					result = ((Double) result).byteValue();
 				} else if (result instanceof String) {// 有可能是字典
 					result = Double.valueOf((String) result).byteValue();
 				}
 			} else if (fieldType.equals(Short.class) || fieldType.equals(short.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写小于32767的整数";
+				errDesc = "[" + cellValue + "],请填写小于32767的整数";
 				if (result instanceof Double) {
 					result = ((Double) result).shortValue();
 				} else if (result instanceof String) {// 有可能是字典
 					result = Double.valueOf((String) result).shortValue();
 				}
 			} else if (fieldType.equals(Float.class) || fieldType.equals(float.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写小数或整数";
+				errDesc = "[" + cellValue + "],请填写小数或整数";
 				if (result instanceof Double) {
 					result = ((Double) result).floatValue();
 				} else if (result instanceof String) {
@@ -422,14 +420,14 @@ public class ParseUtil {
 					throw new RuntimeException();
 				}
 			} else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
-				errDesc = "[" + cellValue + "]," + "请填写整数";
+				errDesc = "[" + cellValue + "],请填写整数";
 				if (result instanceof Double) {
 					result = ((Double) result).longValue();
 				} else if (result instanceof String) {
 					result = Double.valueOf((String) result).longValue();
 				}
 			} else {
-				throw new RuntimeException("不支持的类型,请配置类型解析器！" + fieldType);
+				throw new RuntimeException("不支持的类型,请配置ExcelTypeHandler!" + fieldType);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(errDesc);
@@ -437,10 +435,15 @@ public class ParseUtil {
 		return result;
 	}
 
-	// 获取字段的实际类型
+	/**
+	 * 获取字段的真实类型 ,集合获取泛型
+	 * 
+	 * @param field
+	 * @return
+	 */
 	private static Class getRealType(Field field) {
 		Class fieldType = field.getType();
-		boolean isCollection = Collection.class.isAssignableFrom(fieldType);
+		boolean isCollection = List.class.isAssignableFrom(fieldType);
 		if (isCollection) {// 集合类型,取其泛型
 			Class[] types = ReflectUtil.getFieldActualType(field);
 			if (types.length != 1) {
@@ -464,15 +467,15 @@ public class ParseUtil {
 			cp.setNullable(ew.nullable());
 			// 字典
 			Map<String, String> dicMap = DicFactory.get(ew.dicGroup(), false);
-			if (dicMap==null && ew.replace().length > 0) {
+			if (dicMap == null && ew.replace().length > 0) {
 				dicMap = ExcelUtil.initDicMap(ew.replace(), false);
 			}
 			cp.setDicMap(dicMap);
 			// 转换
-			String importFormat = StringUtils.isEmpty(ew.innerParseConvert().trim()) ? null : ew.innerParseConvert().trim();
-			cp.setBeanInnerParseConvert(importFormat);
+			String importFormat = StringUtils.isEmpty(ew.methodParseConvert().trim()) ? null : ew.methodParseConvert().trim();
+			cp.setMethodParseConvert(importFormat);
 			// 图片生成策略
-			cp.setImgStoreStrategy(ImgStoreFactory.get(ew.imgStoreStrategy()));
+			cp.setImgStoreStrategy(ImgStoreStrategyFactory.get(ew.imgStoreStrategy()));
 			cp.setDicErr(ew.dicErr());
 			cp.setMultiChoice(ew.multiChoice());
 			cp.setStr2NullArr(ew.str2Nulls());
@@ -489,6 +492,7 @@ public class ParseUtil {
 
 	/**
 	 * 普通做空字符串数组
+	 * 
 	 * @return
 	 */
 	private static String[] commonNullStrArr() {

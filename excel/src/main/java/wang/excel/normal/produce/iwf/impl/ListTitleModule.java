@@ -1,17 +1,18 @@
 package wang.excel.normal.produce.iwf.impl;
 
-import wang.excel.normal.produce.iwf.CellStyleDefine;
-import wang.excel.normal.produce.iwf.Title;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 
+import wang.excel.normal.produce.iwf.CellStyleDefine;
+import wang.excel.normal.produce.iwf.SheetModule;
+
 /**
  * 数组类型表头
  */
-public class ListTitleModule extends SemanticModule implements Title {
+public class ListTitleModule extends SheetModule.Title {
 
 	/**
 	 * 标题
@@ -41,12 +42,12 @@ public class ListTitleModule extends SemanticModule implements Title {
 	}
 
 	@Override
-	public void title(Sheet sheet) {
+	public void sheet(Sheet sheet) {
 		Workbook wb = sheet.getWorkbook();
 
 		// 先走标题
 		if (title != null) {
-			int num = 0;
+			int num;
 			if (sheet.getRow(0) == null) {
 				num = -1;
 			} else {

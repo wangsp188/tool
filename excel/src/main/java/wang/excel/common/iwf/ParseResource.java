@@ -1,11 +1,7 @@
 package wang.excel.common.iwf;
 
+/**
+ * 解析源语义接口
+ */
 public interface ParseResource {
-
-	/**
-	 * 解析源的描述
-	 * 
-	 * @return 描述信息
-	 */
-	String desc();
 }

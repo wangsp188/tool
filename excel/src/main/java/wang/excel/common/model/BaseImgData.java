@@ -1,10 +1,11 @@
 package wang.excel.common.model;
 
-import wang.excel.common.iwf.ImgProduce;
-import org.apache.poi.ss.usermodel.Cell;
-
 import java.io.File;
 import java.util.List;
+
+import org.apache.poi.ss.usermodel.Cell;
+
+import wang.excel.common.iwf.ImgProduceStrategy;
 
 public abstract class BaseImgData {
 
@@ -14,14 +15,14 @@ public abstract class BaseImgData {
 	/**
 	 * 插入图片形式的枚举 需要注意的是 该枚举的一些实现是基于 field属性的,必须绑定到指定的字段
 	 */
-	protected ImgProduce imgProduce;// 图片枚举
+	protected ImgProduceStrategy imgProduceStrategy;// 图片枚举
 
-	public ImgProduce getImgProduce() {
-		return imgProduce;
+	public ImgProduceStrategy getImgProduceStrategy() {
+		return imgProduceStrategy;
 	}
 
-	public void setImgProduce(ImgProduce imgProduce) {
-		this.imgProduce = imgProduce;
+	public void setImgProduceStrategy(ImgProduceStrategy imgProduceStrategy) {
+		this.imgProduceStrategy = imgProduceStrategy;
 	}
 
 	public Object getBindInfo() {
@@ -40,6 +41,11 @@ public abstract class BaseImgData {
 		this.imgFiles = imgFiles;
 	}
 
+	/**
+	 * 写图片
+	 * 
+	 * @param cell
+	 */
 	public abstract void drawImg(Cell cell);
 
 }

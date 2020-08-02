@@ -1,16 +1,14 @@
 package wang.util;
 
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * 主要用于打印测试
@@ -20,7 +18,6 @@ import java.util.Set;
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class PrintUtil {
-	private static final Logger log = LoggerFactory.getLogger(PrintUtil.class);
 
 	/**
 	 * 集合
@@ -29,7 +26,7 @@ public class PrintUtil {
 	 * @param isPrint
 	 * @return
 	 */
-	public static String collection(Collection c, boolean isPrint) {
+	public static String collection(Collection c) {
 		String str = null;
 		if (CollectionUtils.isEmpty(c)) {
 			str = "[]";
@@ -37,13 +34,11 @@ public class PrintUtil {
 			StringBuilder sb = new StringBuilder();
 			sb.append("[ ");
 			for (Object t : c) {
-				sb.append(object(t, false) + " , ");
+				sb.append(object(t) + " , ");
 			}
 			str = sb.substring(0, sb.length() - 2) + "]";
 		}
-		if (isPrint) {
-			log.debug(str);
-		}
+
 		return str;
 	}
 
@@ -54,7 +49,7 @@ public class PrintUtil {
 	 * @param isPrint
 	 * @return
 	 */
-	public static String array(Object os, boolean isPrint) {
+	public static String array(Object os) {
 		String str = null;
 		if (os == null) {
 			str = "[]";
@@ -63,46 +58,44 @@ public class PrintUtil {
 			sb.append("[ ");
 			if (os instanceof Object[]) {
 				for (Object b : (Object[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			} else if (os instanceof boolean[]) {
 				for (boolean b : (boolean[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			} else if (os instanceof byte[]) {
 				for (byte b : (byte[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			} else if (os instanceof char[]) {
 				for (char b : (char[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			} else if (os instanceof double[]) {
 				for (double b : (double[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			} else if (os instanceof float[]) {
 				for (float b : (float[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			} else if (os instanceof int[]) {
 				for (int b : (int[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			} else if (os instanceof long[]) {
 				for (long b : (long[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			} else if (os instanceof short[]) {
 				for (short b : (short[]) os) {
-					sb.append(object(b, false) + " ,");
+					sb.append(object(b) + " ,");
 				}
 			}
 			str = sb.substring(0, sb.length() - 1) + "]";
 		}
-		if (isPrint) {
-			log.debug(str);
-		}
+
 		return str;
 	}
 
@@ -118,13 +111,9 @@ public class PrintUtil {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{ ");
 		for (Entry<Object, Object> o : entrySet) {
-			sb.append(o.getKey() + " : " + object(o.getValue(), false) + " , ");
+			sb.append(o.getKey() + " : " + object(o.getValue()) + " , ");
 		}
-		String str = sb.substring(0, sb.length() - 2) + "}";
-		if (isPrint) {
-			log.debug(str);
-		}
-		return str;
+		return sb.substring(0, sb.length() - 2) + "}";
 	}
 
 	/**
@@ -134,21 +123,19 @@ public class PrintUtil {
 	 * @param isPrint 是否控制台打印
 	 * @return
 	 */
-	public static String object(Object o, boolean isPrint) {
+	public static String object(Object o) {
 		if (o == null) {
-			if (isPrint) {
-				log.debug("null");
-			}
+
 			return null;
 		}
 		String string = null;
 		if (o.getClass().isArray()) {// 数组
-			string = array(o, false);
+			string = array(o);
 
 		} else if (o instanceof Map) {// map
 			string = map((Map) o, false);
 		} else if (o instanceof Collection) {// 集合
-			string = collection((Collection) o, false);
+			string = collection((Collection) o);
 		} else if (ReflectUtil.isOverWriteToString(o)) {// 自定义重写方法
 			string = o.toString();
 		} else {
@@ -159,7 +146,7 @@ public class PrintUtil {
 				if (!p.getName().equals("class")) {
 					try {
 						Object obj = PropertyUtils.getProperty(o, p.getName());
-						sb.append("属性:").append(p.getName()).append(" 值:").append(object(obj, false)).append(" ,");
+						sb.append("属性:").append(p.getName()).append(" 值:").append(object(obj)).append(" ,");
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -168,25 +155,22 @@ public class PrintUtil {
 			}
 			string = sb.substring(0, sb.length() - 1) + ";";
 		}
-		if (isPrint) {
-			log.debug(string);
-		}
+
 		return string;
 	}
 
 	/**
-	 * 耗时计算,此函数自带默认输出
+	 * 耗时计算
 	 * 
 	 * @param date
 	 * @return 经过的秒数
 	 */
 	public static int interval(Date date) {
-		if(date==null){
-			throw new  IllegalArgumentException();
+		if (date == null) {
+			throw new IllegalArgumentException();
 		}
 		Date now = new Date();
 		long x = (now.getTime() - date.getTime());
-		log.debug("历时:{}毫秒",x);
 		return new Long(x).intValue();
 	}
 

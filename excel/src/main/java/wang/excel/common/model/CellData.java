@@ -1,12 +1,11 @@
 package wang.excel.common.model;
 
-
 import org.apache.commons.lang.StringUtils;
 
 /**
  * 定义单元格信息
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 public class CellData {
@@ -43,7 +42,7 @@ public class CellData {
 	 * @return
 	 */
 	public static boolean isEmpty(CellData cellData) {
-		return cellData == null || cellData.value==null ||StringUtils.isEmpty(cellData.value.toString());
+		return cellData == null || cellData.value == null || StringUtils.isEmpty(cellData.value.toString());
 	}
 
 	public Object getValue() {

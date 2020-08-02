@@ -1,6 +1,5 @@
 package wang.process.core;
 
-
 import wang.util.SafeMap;
 
 /**

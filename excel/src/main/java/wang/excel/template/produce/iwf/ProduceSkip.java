@@ -1,18 +1,18 @@
 package wang.excel.template.produce.iwf;
 
-import org.apache.poi.ss.usermodel.Sheet;
-
 import java.util.Map;
 
+import org.apache.poi.ss.usermodel.Sheet;
 
+/**
+ * 构建时跳过某表格
+ */
 public interface ProduceSkip {
 	/**
-	 * 构建时是否跳过sheet
-	 * 
-	 * @param sheet 表格
-	 * @param t 检验实体
+	 * @param sheet        表格
+	 * @param t            检验实体
 	 * @param adherentInfo 检验实体
-	 * @return
+	 * @return 构建时是否跳过sheet
 	 */
-	boolean skip(Sheet sheet, Object t, Map<String,Object> adherentInfo);
+	boolean skip(Sheet sheet, Object t, Map<String, Object> adherentInfo);
 }

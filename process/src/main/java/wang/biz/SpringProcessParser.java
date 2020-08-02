@@ -1,18 +1,19 @@
 package wang.biz;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.lang.NonNull;
-import org.springframework.util.Assert;
-import wang.process.core.SimpleProcess;
-import wang.process.core.Step;
-import wang.process.core.Task;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
+
+import wang.process.core.SimpleProcess;
+import wang.process.core.Step;
+import wang.process.core.Task;
 
 /**
  * @Description process表达式的解析器

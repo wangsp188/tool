@@ -1,9 +1,8 @@
 package wang.excel.common.model;
 
-import wang.excel.common.iwf.ParseConvert;
-
 import java.util.Arrays;
 
+import wang.excel.common.iwf.ParseConvert;
 
 public class BaseParseParam extends ExcelParam {
 
@@ -21,6 +20,11 @@ public class BaseParseParam extends ExcelParam {
 	 * 解析特殊接口
 	 */
 	protected ParseConvert parseConvert;
+
+	/**
+	 * 方法级的解析转换
+	 */
+	protected String methodParseConvert;
 
 	public String[] getStr2NullArr() {
 		return str2NullArr;
@@ -46,16 +50,16 @@ public class BaseParseParam extends ExcelParam {
 		this.parseConvert = parseConvert;
 	}
 
+	public String getMethodParseConvert() {
+		return methodParseConvert;
+	}
+
+	public void setMethodParseConvert(String methodParseConvert) {
+		this.methodParseConvert = methodParseConvert;
+	}
+
 	@Override
 	public String toString() {
-		return "BaseParseParam{" +
-				"nullable=" + nullable +
-				", str2NullArr=" + Arrays.toString(str2NullArr) +
-				", parseConvert=" + parseConvert +
-				", dicMap=" + dicMap +
-				", multiChoice=" + multiChoice +
-				", dicErr=" + dicErr +
-				", imgStoreStrategy=" + imgStoreStrategy +
-				'}';
+		return "BaseParseParam{" + "nullable=" + nullable + ", str2NullArr=" + Arrays.toString(str2NullArr) + ", parseConvert=" + parseConvert + ", methodParseConvert='" + methodParseConvert + '\'' + ", dicMap=" + dicMap + ", multiChoice=" + multiChoice + ", dicErr=" + dicErr + ", imgStoreStrategy=" + imgStoreStrategy + '}';
 	}
 }

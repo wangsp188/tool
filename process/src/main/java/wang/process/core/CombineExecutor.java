@@ -1,14 +1,5 @@
 package wang.process.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-import wang.process.filter.After;
-import wang.process.filter.TaskFilter;
-import wang.process.util.ProcessUtil;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,6 +8,16 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import wang.process.filter.After;
+import wang.process.filter.TaskFilter;
+import wang.process.util.ProcessUtil;
 
 /**
  * @Description 批量执行Process
@@ -30,8 +31,6 @@ public class CombineExecutor implements Executor<CombineProcess> {
 		return SingleCombineExecutor.instance;
 	}
 
-
-
 	@Override
 	public void start(CombineProcess combineProcess) {
 		// 验证
@@ -39,7 +38,7 @@ public class CombineExecutor implements Executor<CombineProcess> {
 			validate(combineProcess);
 			combineProcess.on(Status.valid);
 		} catch (Exception e) {
-			combineProcess.setException(ProcessException.convert(e,"CombineProcess 校验失败!errMsg:" + e.getMessage(), ProcessException.ErrorType.VALIDATE_ERROR));
+			combineProcess.setException(ProcessException.convert(e, "CombineProcess 校验失败!errMsg:" + e.getMessage(), ProcessException.ErrorType.VALIDATE_ERROR));
 			combineProcess.off(Status.valid);
 			combineProcess.on(Status.normalEnd);
 			return;
@@ -79,41 +78,42 @@ public class CombineExecutor implements Executor<CombineProcess> {
 	private void buildAndStart(CombineProcess combineProcess) throws Exception {
 		List<SimpleProcess> joinProcesses = combineProcess.getJoinProcesses();
 
-		//先将子的traceId规范变更,方式为父traceId-子的名字/下标
+		// 先将子的traceId规范变更,方式为父traceId-子的名字/下标
 		modifyJoinTraceId(combineProcess, joinProcesses);
 
-		//构建执行
+		// 构建执行
 		CombineModel runModel = combineProcess.getRunModel();
-		switch (runModel){
-			case rollbackSharing://回滚共享
-				//先包装
-				wrap4TransactionSharing(combineProcess);
-				//批量执行
-				doAndCombine(combineProcess);
-				break;
-			case unrelatedAsync://全异步
-				//全异步不关联
-				doAndCombine(combineProcess);
-				break;
-			case sequence://全同步
-				//同步执行
-				doSync(combineProcess);
-				//同步
-				combineProcess.off(Status.async);
-				//正常结束
-				combineProcess.on(Status.normalEnd);
-				break;
-			case sequence2://全同步
-				doSyncOutAsync(combineProcess);
-				break;
-			default:
-				throw new UnsupportedOperationException("不支持的执行模式");
+		switch (runModel) {
+		case rollbackSharing:// 回滚共享
+			// 先包装
+			wrap4TransactionSharing(combineProcess);
+			// 批量执行
+			doAndCombine(combineProcess);
+			break;
+		case unrelatedAsync:// 全异步
+			// 全异步不关联
+			doAndCombine(combineProcess);
+			break;
+		case sequence:// 全同步
+			// 同步执行
+			doSync(combineProcess);
+			// 同步
+			combineProcess.off(Status.async);
+			// 正常结束
+			combineProcess.on(Status.normalEnd);
+			break;
+		case sequence2:// 全同步
+			doSyncOutAsync(combineProcess);
+			break;
+		default:
+			throw new UnsupportedOperationException("不支持的执行模式");
 		}
 
 	}
 
 	/**
 	 * 内部同步外部异步
+	 * 
 	 * @param combineProcess
 	 */
 	private void doSyncOutAsync(CombineProcess combineProcess) {
@@ -131,6 +131,7 @@ public class CombineExecutor implements Executor<CombineProcess> {
 
 	/**
 	 * 同步执行
+	 * 
 	 * @param combineProcess
 	 */
 	private void doSync(CombineProcess combineProcess) {
@@ -142,24 +143,25 @@ public class CombineExecutor implements Executor<CombineProcess> {
 
 	/**
 	 * 全异步不关联执行
+	 * 
 	 * @param combineProcess
 	 */
 	private void doAndCombine(CombineProcess combineProcess) throws InterruptedException {
 		List<SimpleProcess> joinProcesses = combineProcess.getJoinProcesses();
 		// 先获取令牌
-		int permits = joinProcesses.size()+2;
+		int permits = joinProcesses.size() + 2;
 		SingleCombineExecutor.acquire(permits, 1000);
 		try {
 			ArrayList<CompletableFuture> joinFutures = new ArrayList<>();
 			for (SimpleProcess joinProcess : joinProcesses) {
-				//手动异步并执行
+				// 手动异步并执行
 				joinProcess.setNeedAsync(true).execute();
 				if (joinProcess.isAsyncExecute()) {
 					joinFutures.add(joinProcess.getFuture());
 				}
 			}
 
-			//异步等待所有结果
+			// 异步等待所有结果
 			CompletableFuture<Void> combineFuture = CompletableFuture.allOf(joinFutures.toArray(new CompletableFuture[joinFutures.size()])).whenCompleteAsync((aVoid, throwable) -> {
 				SingleCombineExecutor.release(permits);
 				if (throwable == null) {
@@ -178,26 +180,24 @@ public class CombineExecutor implements Executor<CombineProcess> {
 		}
 	}
 
-
 	/**
 	 * 修改子process的traceId
+	 * 
 	 * @param combineProcess
 	 * @param processes
 	 */
 	private void modifyJoinTraceId(CombineProcess combineProcess, List<SimpleProcess> processes) {
-		String parentId = combineProcess.getTraceId()+"-";
+		String parentId = combineProcess.getTraceId() + "-";
 		for (int i = 0; i < processes.size(); i++) {
 			SimpleProcess oneProcess = processes.get(i);
 			String name = oneProcess.getName();
-			if(!StringUtils.isEmpty(name)){
-				oneProcess.setTraceId(parentId+name);
-			}else{
-				oneProcess.setTraceId(parentId+i);
+			if (!StringUtils.isEmpty(name)) {
+				oneProcess.setTraceId(parentId + name);
+			} else {
+				oneProcess.setTraceId(parentId + i);
 			}
 		}
 	}
-
-
 
 	/**
 	 * 事务共享的包装
@@ -287,8 +287,8 @@ public class CombineExecutor implements Executor<CombineProcess> {
 	}
 
 	/**
-	 * 自己活干完了等着其他人吧
-	 * 自己响应超时
+	 * 自己活干完了等着其他人吧 自己响应超时
+	 * 
 	 * @param asyncBros
 	 * @param process
 	 */
@@ -313,6 +313,15 @@ public class CombineExecutor implements Executor<CombineProcess> {
 		}
 	}
 
+	/**
+	 * 各joinProcess运行时的关系
+	 */
+	public static enum CombineModel {
+		rollbackSharing("共享回滚"), unrelatedAsync("各不相关,全异步执行"), sequence("同步等待执行"), sequence2("内部同步,外部异步");
+
+		CombineModel(String desc) {
+		}
+	}
 
 	/**
 	 * @Description 异步执行队长(异步事务)
@@ -398,7 +407,7 @@ public class CombineExecutor implements Executor<CombineProcess> {
 		/**
 		 * 干完活就在这等着吧
 		 * 为了能响应process的中断打标(万一所有的步骤都在这死等着,就算超时打标了,也感应不到,所以这里这个api,希望调用方能抽空来校验超时)
-		 * 
+		 *
 		 * @param wait 等待时长
 		 * @throws RuntimeException 线程中断,抛出异常
 		 * @return 等到没有
@@ -443,7 +452,7 @@ public class CombineExecutor implements Executor<CombineProcess> {
 
 	/**
 	 * 单例
-	* */
+	 */
 	private static final class SingleCombineExecutor {
 		private static final CombineExecutor instance = new CombineExecutor();
 
@@ -452,7 +461,7 @@ public class CombineExecutor implements Executor<CombineProcess> {
 
 		/**
 		 * 获取信号量
-		 * 
+		 *
 		 * @param permits
 		 */
 		private static void acquire(int permits, int wait) throws InterruptedException {
@@ -464,7 +473,7 @@ public class CombineExecutor implements Executor<CombineProcess> {
 
 		/**
 		 * 返回信号量
-		 * 
+		 *
 		 * @param permits
 		 */
 		private static void release(int permits) {
@@ -472,25 +481,6 @@ public class CombineExecutor implements Executor<CombineProcess> {
 			log.debug("CombineProcess 还令牌:{},当前剩余:{}", permits, concurrentSemaphore.availablePermits());
 		}
 
-
 	}
-
-
-
-
-	/**
-	 * 各joinProcess运行时的关系
-	 */
-	public static enum CombineModel {
-		rollbackSharing("共享回滚"),
-		unrelatedAsync("各不相关,全异步执行"),
-		sequence("同步等待执行"),
-		sequence2("内部同步,外部异步")
-		;
-
-		CombineModel(String desc) {
-		}
-	}
-
 
 }

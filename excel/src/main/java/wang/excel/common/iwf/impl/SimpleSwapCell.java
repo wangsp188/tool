@@ -1,25 +1,72 @@
 package wang.excel.common.iwf.impl;
 
+import java.util.Calendar;
+import java.util.Date;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.RichTextString;
+
 import wang.excel.common.iwf.SwapCell;
 import wang.excel.common.model.BaseImgData;
 import wang.excel.common.model.CellData;
 import wang.excel.common.util.ExcelUtil;
 import wang.util.DateUtil;
 
-import java.util.Calendar;
-import java.util.Date;
-
 /**
  * 替换单元格
  */
 public class SimpleSwapCell implements SwapCell {
 
+	/**
+	 * 设置单元格值 对日期格式会做适应格式化
+	 *
+	 * @param cell  目标单元格
+	 * @param value 值
+	 * @return
+	 */
+	private static void setCellValue(Cell cell, Object value) {
+		if (value == null) {
+			cell.setCellType(Cell.CELL_TYPE_BLANK);
+		} else if (value instanceof String) {
+			cell.setCellValue((String) value);
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+		} else if (value instanceof Date || value instanceof Calendar) {
+			Date date = null;
+			if (value instanceof Calendar) {
+				date = ((Calendar) value).getTime();
+			} else {
+				date = (Date) value;
+			}
+			String dataStr = null;
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(date);
+			if (calendar.get(Calendar.HOUR_OF_DAY) == 0 && calendar.get(Calendar.MINUTE) == 0) {
+				dataStr = DateUtil.formatDate(date, "yyyy/MM/dd");
+			} else {
+				dataStr = DateUtil.formatDate(date, "yyyy/MM/dd HH:mm");
+			}
+			cell.setCellValue(dataStr);
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+		} else if (value instanceof Boolean) {
+			cell.setCellValue((Boolean) value);
+			cell.setCellType(Cell.CELL_TYPE_BOOLEAN);
+		} else if (value instanceof Number) {
+			double du = Double.parseDouble(value + "");
+			cell.setCellValue(du);
+			cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+		} else if (value instanceof RichTextString) {
+			cell.setCellValue((RichTextString) value);
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+		} else {
+			cell.setCellValue(String.valueOf(value));
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+		}
+	}
+
 	@Override
 	public void swap(Cell cell, CellData cellData, String matchStr) {
-		if(cell==null){
+		if (cell == null) {
 			throw new IllegalArgumentException("赋值单元格不可为空");
 		}
 		// 先判断数据是不是pictureData
@@ -40,7 +87,7 @@ public class SimpleSwapCell implements SwapCell {
 				throw new UnsupportedOperationException("不支持的单元格类型");
 			}
 			Object cellValue = ExcelUtil.getCellVal(cell);
-			if (cellValue==null || StringUtils.isEmpty(cellValue.toString()) || cellValue.toString().trim().equals(matchStr)) {// 空值,或完全直接赋值
+			if (cellValue == null || StringUtils.isEmpty(cellValue.toString()) || cellValue.toString().trim().equals(matchStr)) {// 空值,或完全直接赋值
 				SimpleSwapCell.setCellValue(cell, value);
 				return;
 			}
@@ -64,51 +111,5 @@ public class SimpleSwapCell implements SwapCell {
 			}
 		}
 
-	}
-
-	/**
-	 * 设置单元格值 对日期格式会做适应格式化
-	 * 
-	 * @param cell  目标单元格
-	 * @param value 值
-	 * @return
-	 */
-	private static void setCellValue(Cell cell, Object value) {
-		if (value == null) {
-			cell.setCellType(Cell.CELL_TYPE_BLANK);
-		} else if (value instanceof String) {
-			cell.setCellValue((String) value);
-			cell.setCellType(Cell.CELL_TYPE_STRING);
-		} else if (value instanceof Date || value instanceof Calendar) {
-			Date date = null;
-			if (value instanceof Calendar) {
-				date = ((Calendar) value).getTime();
-			} else {
-				date = (Date) value;
-			}
-			String  dataStr = null;
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(date);
-			if (calendar.get(Calendar.HOUR_OF_DAY) == 0 && calendar.get(Calendar.MINUTE) == 0) {
-				dataStr = DateUtil.formatDate(date,"yyyy/MM/dd");
-			} else {
-				dataStr = DateUtil.formatDate(date,"yyyy/MM/dd HH:mm");
-			}
-			cell.setCellValue( dataStr);
-			cell.setCellType(Cell.CELL_TYPE_STRING);
-		} else if (value instanceof Boolean) {
-			cell.setCellValue((Boolean) value);
-			cell.setCellType(Cell.CELL_TYPE_BOOLEAN);
-		} else if (value instanceof Number) {
-			double du = Double.parseDouble(value + "");
-			cell.setCellValue(du);
-			cell.setCellType(Cell.CELL_TYPE_NUMERIC);
-		} else if (value instanceof RichTextString) {
-			cell.setCellValue((RichTextString) value);
-			cell.setCellType(Cell.CELL_TYPE_STRING);
-		} else {
-			cell.setCellValue(String.valueOf(value));
-			cell.setCellType(Cell.CELL_TYPE_STRING);
-		}
 	}
 }

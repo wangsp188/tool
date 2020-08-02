@@ -2,7 +2,6 @@ package wang.excel.common.model;
 
 import wang.excel.common.iwf.ParseResource;
 
-
 /**
  * 工作不 描述
  */
@@ -18,10 +17,9 @@ public class WorkbookResource implements ParseResource {
 	}
 
 	@Override
-	public String desc() {
+	public String toString() {
 		return location == null ? "" : location;
 	}
-
 
 	public String getLocation() {
 		return location;

@@ -36,7 +36,7 @@ public class BeanUtil {
 			return null;
 		}
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		ObjectOutputStream objectOutputStream ;
+		ObjectOutputStream objectOutputStream;
 		try {
 			objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
 
@@ -48,14 +48,14 @@ public class BeanUtil {
 		return byteArrayOutputStream.toByteArray();
 	}
 
-
 	/**
 	 * 通过序列化clone对象
+	 * 
 	 * @param t
 	 * @param <T>
 	 * @return
 	 */
-	public static <T> T clone(T t){
+	public static <T> T clone(T t) {
 		byte[] bytes = object2ByteArr(t);
 		return byteArr2Object(bytes);
 	}

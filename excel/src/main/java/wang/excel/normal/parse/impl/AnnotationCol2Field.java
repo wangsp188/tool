@@ -1,18 +1,5 @@
 package wang.excel.normal.parse.impl;
 
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.ReflectionUtils;
-import wang.excel.common.iwf.Excel;
-import wang.excel.common.iwf.NestExcel;
-import wang.excel.common.util.ExcelUtil;
-import wang.excel.normal.parse.iwf.Col2Field;
-import wang.excel.normal.parse.model.NestField;
-import wang.excel.normal.parse.model.TitleFieldParam;
-
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -20,11 +7,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.ReflectionUtils;
+
+import wang.excel.common.iwf.Excel;
+import wang.excel.common.iwf.NestExcel;
+import wang.excel.common.util.ExcelUtil;
+import wang.excel.normal.parse.iwf.Col2Field;
+import wang.excel.normal.parse.model.NestField;
+import wang.excel.normal.parse.model.TitleFieldParam;
+
 /**
- * 主要实现将行解析中的列和指定实体的指定字段关联起来的功能 依赖与 @Excel 和 @NestExcel 支持嵌套解析
- * 注意 key里面的空格会全部清除
+ * 主要实现将行解析中的列和指定实体的指定字段关联起来的功能 依赖与 @Excel 和 @NestExcel 支持嵌套解析 注意 key里面的空格会全部清除
  * 
- * @author Administrator
+ * @author wangshaopeng
  * @param <T>
  */
 @SuppressWarnings("rawtypes")
@@ -56,42 +56,42 @@ public class AnnotationCol2Field<T> implements Col2Field {
 	private void init() {
 		titleFieldMap = new HashMap<>();
 		check = new JudgeCol(typeClass);
-		init(typeClass, null,null);
+		init(typeClass, null, null);
 	}
 
 	/**
 	 * 初始化
 	 * 
-	 * @param type         解析的类
+	 * @param type 解析的类
 	 */
-	private void init(Class type, Field fieldInParent,String perHead) {
+	private void init(Class type, Field fieldInParent, String perHead) {
 		PropertyDescriptor[] ps = PropertyUtils.getPropertyDescriptors(type);
 		for (PropertyDescriptor p : ps) {
 			String fieldName = p.getName();
 			if (fieldName.equals("class")) {
 				continue;
 			}
-			//没有set方法,过滤
-			if (p.getWriteMethod()==null) {
+			// 没有set方法,过滤
+			if (p.getWriteMethod() == null) {
 				continue;
 			}
 			Field field = ReflectionUtils.findField(type, fieldName);
-			if(field==null){
+			if (field == null) {
 				continue;
 			}
 			// 是否是嵌套属性
 			NestExcel ne = field.getAnnotation(NestExcel.class);
-			if (ne != null ) {
-				//TODO 以后可升级成无限级,实用意义不大,可装逼
-				//暂时只支持一级嵌套
-				if(!StringUtils.isEmpty(perHead)){
+			if (ne != null) {
+				// TODO 以后可升级成无限级,实用意义不大,可装逼
+				// 暂时只支持一级嵌套
+				if (!StringUtils.isEmpty(perHead)) {
 					log.warn("嵌套excel暂不支持多级解析!");
 					continue;
 				}
-				//推断真实对象
+				// 推断真实对象
 				Class realType = NestField.deduceRealType(field);
 				// 普通嵌套实体
-				init(realType,field, ne.name());
+				init(realType, field, ne.name());
 			} else {
 				Excel e = field.getAnnotation(Excel.class);
 				if (e == null && skipNullAnnotation) {
@@ -101,11 +101,11 @@ public class AnnotationCol2Field<T> implements Col2Field {
 				if (e != null) {
 					key = e.name();
 				}
-				//根key
+				// 根key
 				if (StringUtils.isEmpty(perHead)) {
 					titleFieldMap.put(StringUtils.deleteWhitespace(key), new TitleFieldParam(field));
 				} else {
-					//嵌套实体
+					// 嵌套实体
 					TitleFieldParam fieldParam = new TitleFieldParam(field);
 					fieldParam.setNestField(new NestField(fieldInParent));
 					titleFieldMap.put(StringUtils.deleteWhitespace(perHead + "." + key), fieldParam);
@@ -193,12 +193,12 @@ public class AnnotationCol2Field<T> implements Col2Field {
 
 	/**
 	 * 默认判断该列是否是主表字段的实现 判断规则是 看看同列上一行的单元格的值是否和主实体中含有 @ExcelC 注解的集合上的name属性相对应
-	 * 
-	 * @author Administrator
+	 *
+	 * @author wangshaopeng
 	 *
 	 */
 	@SuppressWarnings("rawtypes")
-	private static class JudgeCol  {
+	private static class JudgeCol {
 
 		/**
 		 * 儿子在父实体中的属性上的NestExcel注解的名字集合
@@ -210,7 +210,7 @@ public class AnnotationCol2Field<T> implements Col2Field {
 			PropertyDescriptor[] ps = PropertyUtils.getPropertyDescriptors(cz);
 			for (PropertyDescriptor p : ps) {
 				Field field = ReflectionUtils.findField(cz, p.getName());
-				if(field==null){
+				if (field == null) {
 					continue;
 				}
 				NestExcel ec = field.getAnnotation(NestExcel.class);
@@ -222,7 +222,7 @@ public class AnnotationCol2Field<T> implements Col2Field {
 
 		/**
 		 * 判断这列是不是是主实体
-		 * 
+		 *
 		 * @param cell
 		 * @return
 		 */
@@ -241,4 +241,5 @@ public class AnnotationCol2Field<T> implements Col2Field {
 		}
 
 	}
+
 }

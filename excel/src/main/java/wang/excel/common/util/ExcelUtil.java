@@ -1,5 +1,9 @@
 package wang.excel.common.util;
 
+import java.io.File;
+import java.math.BigDecimal;
+import java.util.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.POIXMLDocumentPart;
 import org.apache.poi.hssf.usermodel.*;
@@ -8,14 +12,11 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 import org.openxmlformats.schemas.drawingml.x2006.spreadsheetDrawing.CTMarker;
 import org.springframework.util.Assert;
+
 import wang.excel.common.iwf.DicErr;
 import wang.excel.common.iwf.impl.SimpleSheetCopy;
 import wang.util.CommonUtil;
 import wang.util.DateUtil;
-
-import java.io.File;
-import java.math.BigDecimal;
-import java.util.*;
 
 public class ExcelUtil {
 
@@ -124,40 +125,8 @@ public class ExcelUtil {
 	}
 
 	/**
-	 * 字体信息静态内部类
-	 * 
-	 * @author Administrator
-	 *
-	 */
-	private static class FontInfo {
-
-		/**
-		 * 边距
-		 */
-		private int spacing;
-
-		/**
-		 * 字符宽度
-		 */
-		private int charWidth;
-
-		/**
-		 * 获取工作簿默认单元格信息
-		 * 
-		 * @param wb
-		 * @return
-		 */
-		private static FontInfo getFontInfo(Workbook wb) {
-			FontInfo info = new FontInfo();
-			info.charWidth = 8;
-			info.spacing = 5;
-			return info;
-		}
-	}
-
-	/**
 	 * 获取单元格高度 电脑显示器上,此函数
-	 * 
+	 *
 	 * @param cell
 	 * @param megerd 是否计算合并单元格
 	 * @return 返回像素
@@ -185,7 +154,7 @@ public class ExcelUtil {
 
 	/**
 	 * 获取单元格中的图片信息 如果单元格是合并单元格,则获取其中所有的图片
-	 * 
+	 *
 	 * @param cell
 	 * @return
 	 */
@@ -212,7 +181,7 @@ public class ExcelUtil {
 
 	/**
 	 * 获取某个合并单元格中的所有图片
-	 * 
+	 *
 	 * @param sheet
 	 * @param megedIndex 合并单元格的下标
 	 * @return
@@ -238,27 +207,27 @@ public class ExcelUtil {
 
 	/**
 	 * 判断单元格是不是合并单元的第一个格子或者不是单元格
-	 * 
+	 *
 	 * @param sheet
 	 * @param cell
 	 * @return
 	 */
 	public static boolean isMergedAndFirst(Sheet sheet, Cell cell) {
 		Row row = cell.getRow();
-		int rownum = row.getRowNum();
-		int colnum = cell.getColumnIndex();
-		CellRangeAddress merged = isMergedRegionAndReturn(sheet, rownum, colnum);
+		int rowNum = row.getRowNum();
+		int colNum = cell.getColumnIndex();
+		CellRangeAddress merged = isMergedRegionAndReturn(sheet, rowNum, colNum);
 		if (merged != null) {
 			int firstR = merged.getFirstRow();
 			int firstC = merged.getFirstColumn();
-            return rownum == firstR && colnum == firstC;
+			return rowNum == firstR && colNum == firstC;
 		}
 		return true;
 	}
 
 	/**
 	 * 判断指定下下标的单元格(进行合并单元格判断)
-	 * 
+	 *
 	 * @param sheet
 	 * @param row
 	 * @param col
@@ -303,9 +272,9 @@ public class ExcelUtil {
 	private static Map<String, List<PictureData>> getPictures(HSSFSheet sheet) {
 		Map<String, List<PictureData>> map = new HashMap<String, List<PictureData>>();
 		List<HSSFShape> list = null;
-		HSSFPatriarch patri = sheet.getDrawingPatriarch();
-		if (patri != null) {
-			list = patri.getChildren();
+		HSSFPatriarch patriarch = sheet.getDrawingPatriarch();
+		if (patriarch != null) {
+			list = patriarch.getChildren();
 		}
 		if (list == null) {
 			return map;
@@ -315,14 +284,14 @@ public class ExcelUtil {
 				HSSFPicture picture = (HSSFPicture) shape;
 				HSSFClientAnchor cAnchor = (HSSFClientAnchor) picture.getAnchor();
 
-				PictureData pdata = picture.getPictureData();
+				PictureData pictureData = picture.getPictureData();
 				String key = cAnchor.getRow1() + "_" + cAnchor.getCol1(); // 行号-列号
 				if (map.get(key) == null) {
 					List<PictureData> one = new ArrayList<PictureData>();
-					one.add(pdata);
+					one.add(pictureData);
 					map.put(key, one);
 				} else {
-					map.get(key).add(pdata);
+					map.get(key).add(pictureData);
 				}
 			}
 		}
@@ -331,7 +300,7 @@ public class ExcelUtil {
 
 	/**
 	 * 获取图片和位置(xss)
-	 * 
+	 *
 	 * @param sheet
 	 * @return
 	 */
@@ -362,7 +331,7 @@ public class ExcelUtil {
 
 	/**
 	 * 判断该表格是不是合并单元格,并返回河滨单元格信息
-	 * 
+	 *
 	 * @param sheet  表
 	 * @param row    行下标
 	 * @param column 列下标
@@ -370,7 +339,7 @@ public class ExcelUtil {
 	 */
 	public static CellRangeAddress isMergedRegionAndReturn(Sheet sheet, int row, int column) {
 		int am = sheet.getNumMergedRegions();
-		CellRangeAddress ca = null;
+		CellRangeAddress ca;
 		int fr, lr, fc, lc;
 		for (int i = 0; i < am; i++) {
 			ca = sheet.getMergedRegion(i);
@@ -394,7 +363,7 @@ public class ExcelUtil {
 
 	/**
 	 * 判断 一行指定的列中数据是不是全空 合并单元格的值也算有值 图片也算有值
-	 * 
+	 *
 	 * @param row   行
 	 * @param first 检查的第一列的下标
 	 * @param size  从第一列开始的列数
@@ -409,7 +378,7 @@ public class ExcelUtil {
 
 	/**
 	 * 判断 一行指定的列中数据是不是全空 图片也算有值
-	 * 
+	 *
 	 * @param row           行
 	 * @param cols          需要检验的列下标集合
 	 * @param supportMerged 合并单元格的算不算
@@ -420,7 +389,7 @@ public class ExcelUtil {
 		}
 		Map<String, List<PictureData>> imgM = getPicturesFromSheet(row.getSheet());
 		for (Integer i : cols) {
-			Cell target = null;
+			Cell target;
 			// 取合并单元格
 			if (supportMerged) {
 				target = getMergedRegionCell(row.getSheet(), row.getRowNum(), i);
@@ -431,7 +400,7 @@ public class ExcelUtil {
 				continue;
 			}
 			Object cellValue = getCellValue(target, null, true, -1);
-			if (cellValue!=null && StringUtils.isNotEmpty(cellValue.toString())) {
+			if (cellValue != null && StringUtils.isNotEmpty(cellValue.toString())) {
 				return false;
 			}
 			// 判断有没有图片
@@ -454,7 +423,7 @@ public class ExcelUtil {
 			return "";
 		}
 		if (obj instanceof Date) {
-			return DateUtil.formatDate((Date) obj,"yyyy/MM/dd");
+			return DateUtil.formatDate((Date) obj, "yyyy/MM/dd");
 		}
 		return obj.toString();
 
@@ -462,15 +431,13 @@ public class ExcelUtil {
 
 	/**
 	 * 获取公式单元格的计算数据 读取错误的单元格值做空
-	 * 
+	 *
 	 * @param cell
 	 * @param throwErr    读取错误时是否抛出异常
 	 * @param doubleScale 小数最多保留几位小数 默认-1 不动
 	 * @return
 	 */
 	public static Object getCellFormulaValue(Cell cell, boolean throwErr, int doubleScale) {
-//		FormulaEvaluator evaluator = cell.getSheet().getWorkbook().getCreationHelper().createFormulaEvaluator();  
-//	    evaluator.evaluateFormulaCell(cell); 
 		if (cell == null || cell.getCellType() != Cell.CELL_TYPE_FORMULA) {
 			throw new IllegalArgumentException("单元格类型必须是公式类型");
 		}
@@ -496,7 +463,7 @@ public class ExcelUtil {
 
 	/**
 	 * 直接获取单元格内容 对于公式型单元格,则返回计算结果 除非cell是null 不然返回不会是null
-	 * 
+	 *
 	 * @param cell 单元格
 	 * @return
 	 */
@@ -506,7 +473,7 @@ public class ExcelUtil {
 
 	/**
 	 * 获取单元格数字的值 不做单元格格式判断
-	 * 
+	 *
 	 * @param cell
 	 * @param doubleScale 小数最多保留几位小数 默认-1 不动(最多保存两位)
 	 * @return double/date
@@ -527,7 +494,7 @@ public class ExcelUtil {
 
 	/**
 	 * 获取单元格内的数据
-	 * 
+	 *
 	 * @param cell
 	 * @param nullMatchArr   空值兼容的 数组 如果是null 不做这方面适配
 	 * @param convertFormula 公式 是否计算结果
@@ -576,7 +543,7 @@ public class ExcelUtil {
 
 	/**
 	 * 判断单元格是否是隐藏的
-	 * 
+	 *
 	 * @param cell
 	 * @return
 	 */
@@ -585,12 +552,12 @@ public class ExcelUtil {
 		if (cell.getSheet().isColumnHidden(cell.getColumnIndex())) {
 			return true;
 		}
-        return cell.getRow().getZeroHeight();
-    }
+		return cell.getRow().getZeroHeight();
+	}
 
 	/**
 	 * 解析字典
-	 * 
+	 *
 	 * @param dicMap      map
 	 * @param key         key
 	 * @param supportMany 是否支持多选
@@ -598,7 +565,7 @@ public class ExcelUtil {
 	 * @return
 	 */
 	public static String convertDic(Map<String, String> dicMap, Object key, boolean supportMany, DicErr dicErr) {
-		if (key==null || StringUtils.isEmpty(key.toString())) {
+		if (key == null || StringUtils.isEmpty(key.toString())) {
 			return null;
 		}
 		String realVal;
@@ -630,14 +597,14 @@ public class ExcelUtil {
 					}
 					s = s.trim();
 					String rv = dicMap.get(s);
-					if(rv!=null){
+					if (rv != null) {
 						sb.append(rv).append(",");
-					}else{
+					} else {
 						if (dicErr == DicErr.restore) {
 							sb.append(s).append(",");
 						} else if (dicErr == DicErr.throw_err) {
 							throw new RuntimeException("字典没有匹配值(目标:" + s + ")");
-						} else if(dicErr != DicErr.empty){
+						} else if (dicErr != DicErr.empty) {
 							throw new IllegalArgumentException("未适配此字典匹配策略[" + dicErr + "]");
 						}
 					}
@@ -666,6 +633,38 @@ public class ExcelUtil {
 			}
 		}
 		return realVal;
+	}
+
+	/**
+	 * 字体信息静态内部类
+	 *
+	 * @author wangshaopeng
+	 *
+	 */
+	private static class FontInfo {
+
+		/**
+		 * 边距
+		 */
+		private int spacing;
+
+		/**
+		 * 字符宽度
+		 */
+		private int charWidth;
+
+		/**
+		 * 获取工作簿默认单元格信息
+		 *
+		 * @param wb
+		 * @return
+		 */
+		private static FontInfo getFontInfo(Workbook wb) {
+			FontInfo info = new FontInfo();
+			info.charWidth = 8;
+			info.spacing = 5;
+			return info;
+		}
 	}
 
 }

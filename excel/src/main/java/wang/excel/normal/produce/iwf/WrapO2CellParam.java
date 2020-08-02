@@ -1,7 +1,6 @@
 package wang.excel.normal.produce.iwf;
 
-
-import wang.excel.common.model.BaseProduceParam;
+import wang.excel.common.model.BaseListProduceParam;
 
 /**
  * 修饰param函数
@@ -9,5 +8,5 @@ import wang.excel.common.model.BaseProduceParam;
  * @param <T>
  */
 public interface WrapO2CellParam<T> {
-	BaseProduceParam param(O2CellMiddleware<T> wraped, String key);
+	BaseListProduceParam param(O2CellMiddleware<T> delegate, String key);
 }

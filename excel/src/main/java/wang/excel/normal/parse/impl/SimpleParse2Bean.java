@@ -1,5 +1,9 @@
 package wang.excel.normal.parse.impl;
 
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.Map.Entry;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -8,6 +12,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import wang.excel.common.iwf.ExcelTypeHandler;
 import wang.excel.common.model.ParseErr;
 import wang.excel.common.model.ParseOneResult;
@@ -15,19 +20,15 @@ import wang.excel.common.model.ParseSuccess;
 import wang.excel.common.util.ExcelUtil;
 import wang.excel.common.util.ParseUtil;
 import wang.excel.normal.parse.iwf.Parse2Bean;
-import wang.excel.normal.parse.model.ColParseParam;
+import wang.excel.normal.parse.model.ListParseParam;
 import wang.excel.normal.parse.model.NestField;
 import wang.excel.normal.parse.model.ParseParam;
 import wang.excel.normal.parse.model.TitleFieldParam;
 
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.Map.Entry;
-
 /**
  * 基本行式解析excel接口实现 支持一对多解析
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -52,7 +53,7 @@ public class SimpleParse2Bean implements Parse2Bean {
 	/**
 	 * 主实体的参数集合 单实体时就是传进来的参数,嵌套则会筛选
 	 */
-	private List<ColParseParam> mainCols;
+	private List<ListParseParam> mainCols;
 
 	/**
 	 * 初始化设置参数 总行数
@@ -92,23 +93,23 @@ public class SimpleParse2Bean implements Parse2Bean {
 	}
 
 	@Override
-	public void init(Sheet sheet, List<ColParseParam> colParseParams, ParseParam param) {
+	public void init(Sheet sheet, List<ListParseParam> listParseParams, ParseParam param) {
 		this.sheet = sheet;
-		this.mainCols = colParseParams;// 默认是全部的
+		this.mainCols = listParseParams;// 默认是全部的
 		this.param = param;
 		this.currentIndex = param.getStartRow();// 从开始的行走
 		this.rowSize = sheet.getLastRowNum() + 1;
 		this.imgMap = ExcelUtil.getPicturesFromSheet(sheet);
 		// 嵌套模式的特殊处理
-		if (param.isNestedModel()) {
+		if (param.isNestModel()) {
 			mergeCell = true;
 			// 按照下标排序
-			Collections.sort(colParseParams);
+			Collections.sort(listParseParams);
 			mainCols = new ArrayList<>();// 重新筛选赋值
 			nestParamMap = new HashMap<>();
 			// 记录many已包含的Key记录
 			Set<String> nestKeys = new HashSet<>();
-			for (ColParseParam cp : colParseParams) {
+			for (ListParseParam cp : listParseParams) {
 				TitleFieldParam fp = cp.getFieldParam();
 				if (!fp.isNest()) {// 主
 					mainCols.add(cp);
@@ -119,7 +120,7 @@ public class SimpleParse2Bean implements Parse2Bean {
 						sp.getColParses().add(cp);
 					} else {// 未包含,初始化
 						NestParam sp = new NestParam(fp.getNestField());
-						List<ColParseParam> pL = new ArrayList<>();
+						List<ListParseParam> pL = new ArrayList<>();
 						pL.add(cp);
 						sp.setColParses(pL);
 						nestParamMap.put(nestedFieldName, sp);
@@ -137,7 +138,7 @@ public class SimpleParse2Bean implements Parse2Bean {
 			row = sheet.getRow(currentIndex);
 			// 单实体,看下读取的列有没有数据就好
 			// 嵌套判断
-			if (param.isNestedModel()) {
+			if (param.isNestModel()) {
 				if (isNext(row)) {
 					return true;
 				}
@@ -156,7 +157,7 @@ public class SimpleParse2Bean implements Parse2Bean {
 	@Override
 	public ParseOneResult next() {
 		ParseOneResult oneResult;
-		if (param.isNestedModel()) {
+		if (param.isNestModel()) {
 			// 主子实体
 			oneResult = parseNest();
 		} else {
@@ -228,7 +229,7 @@ public class SimpleParse2Bean implements Parse2Bean {
 							collection.add(oneNest);
 							nestStatusMap.put(nestName, collection);
 						} catch (Exception e) {
-							log.warn("嵌套实体不可实例化货赋值失败,可能是类型不匹配,{}",e.getMessage());
+							log.warn("嵌套实体不可实例化货赋值失败,可能是类型不匹配,{}", e.getMessage());
 							currentIndex++;
 							return new ParseErr(sheet.getSheetName(), currentIndex, nestParam.getColParses().get(0).getColIndex(), "嵌套实体不可实例化货赋值失败,可能是类型不匹配" + initType);
 						}
@@ -254,8 +255,8 @@ public class SimpleParse2Bean implements Parse2Bean {
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
-						log.error("实体赋值失败!可能是类型不匹配{}",e.getMessage());
-						return new ParseErr("嵌套实体赋值失败!可能是类型不匹配"+e.getMessage());
+						log.error("实体赋值失败!可能是类型不匹配{}", e.getMessage());
+						return new ParseErr("嵌套实体赋值失败!可能是类型不匹配" + e.getMessage());
 					}
 				}
 
@@ -279,18 +280,18 @@ public class SimpleParse2Bean implements Parse2Bean {
 	/**
 	 * 读取一行的指定列并封装成实体
 	 * 
-	 * @param row            行
-	 * @param colParseParams 指定列
-	 * @param cz             实体的Class
+	 * @param row             行
+	 * @param listParseParams 指定列
+	 * @param cz              实体的Class
 	 * @return
 	 */
-	private <T> ParseOneResult<T> parseCols2Bean(Row row, List<ColParseParam> colParseParams, Class<T> cz) {
+	private <T> ParseOneResult<T> parseCols2Bean(Row row, List<ListParseParam> listParseParams, Class<T> cz) {
 		int rowNum = row.getRowNum();
 		int y = 0;// 列数提到上面来,抓异常用
 		try {
 			ParseErr err = new ParseErr();
 			T t = cz.newInstance();
-			for (ColParseParam one : colParseParams) {
+			for (ListParseParam one : listParseParams) {
 
 				y = one.getColIndex();// 列赋值
 				Field field = one.getFieldParam().getField();
@@ -299,29 +300,29 @@ public class SimpleParse2Bean implements Parse2Bean {
 				}
 				// 合并单元格的测试
 				Cell cell;
-				List<PictureData> imgs;
+				List<PictureData> img;
 
 				if (isMergeCell()) {
 					cell = ExcelUtil.getMergedRegionCell(sheet, rowNum, y);
 					if (cell == null) {// 防止这个单元格只有一张图的情况,获取这个单元格是null
-						imgs = imgMap.get(rowNum + "_" + y);
+						img = imgMap.get(rowNum + "_" + y);
 					} else {
-						imgs = ExcelUtil.getCellImg(imgMap, cell);
+						img = ExcelUtil.getCellImg(imgMap, cell);
 					}
 				} else {
 					cell = row.getCell(y);
-					imgs = imgMap.get(rowNum + "_" + y);
+					img = imgMap.get(rowNum + "_" + y);
 				}
 				// 表头名
 				String titleName = one.getTitleCell().getStringCellValue();
 
 				try {
 					// 解析单元格值
-					Object obj = ParseUtil.parseCell(t, one, field, cell, imgs, this.typeHandlerMap);
+					Object obj = ParseUtil.parseCell(t, one, field, cell, img, this.typeHandlerMap);
 					if (obj == null) {
 						boolean canNull = one.isNullable();// 判断是不是可为空,null代表不可为空
 						if (!canNull) {// 非空验证
-							throw new RuntimeException("" + titleName + "不可为空");
+							throw new RuntimeException(titleName + "不可为空");
 						}
 					} else {
 						try {
@@ -332,13 +333,13 @@ public class SimpleParse2Bean implements Parse2Bean {
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
-					String msg = "[" + titleName + "]解析失败(" + e.getMessage() + ")";
+					String msg = "[" + titleName + "]解析失败:" + e.getMessage();
 					err.addErrInfo(sheet.getSheetName(), rowNum, y, msg);
 				}
 
 			}
 			if (CollectionUtils.isEmpty(err.getErrInfos())) {
-				log.debug("表:" + sheet.getSheetName() + "第" + (rowNum + 1) + "行解析成功:" + t);
+//				log.debug("表:" + sheet.getSheetName() + "第" + (rowNum + 1) + "行解析成功:" + t);
 				return new ParseSuccess<>("第" + (rowNum + 1) + "行", t);
 			}
 			return err;
@@ -355,10 +356,10 @@ public class SimpleParse2Bean implements Parse2Bean {
 	 * 
 	 * @return
 	 */
-	private List<Integer> getColIndexListByColParseParams(Collection<ColParseParam> colParseL) {
+	private List<Integer> getColIndexListByColParseParams(Collection<ListParseParam> colParseL) {
 		List<Integer> ls = new ArrayList<>();
 		if (colParseL != null) {
-			for (ColParseParam c : colParseL) {
+			for (ListParseParam c : colParseL) {
 				ls.add(c.getColIndex());
 			}
 		}
@@ -384,12 +385,12 @@ public class SimpleParse2Bean implements Parse2Bean {
 	/**
 	 * 保存 嵌套表的参数信息
 	 *
-	 * @author Administrator
+	 * @author wangshaopeng
 	 *
 	 */
 	public static class NestParam {
 		private NestField nestField;
-		private List<ColParseParam> colParses;// 对应的列数
+		private List<ListParseParam> colParses;// 对应的列数
 
 		public NestParam(NestField nestField) {
 			this.nestField = nestField;
@@ -403,14 +404,13 @@ public class SimpleParse2Bean implements Parse2Bean {
 			this.nestField = nestField;
 		}
 
-		public List<ColParseParam> getColParses() {
+		public List<ListParseParam> getColParses() {
 			return colParses;
 		}
 
-		public void setColParses(List<ColParseParam> colParses) {
+		public void setColParses(List<ListParseParam> colParses) {
 			this.colParses = colParses;
 		}
-
 
 	}
 

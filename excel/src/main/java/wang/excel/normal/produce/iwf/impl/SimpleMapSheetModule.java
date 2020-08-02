@@ -3,11 +3,10 @@ package wang.excel.normal.produce.iwf.impl;
 import java.util.List;
 import java.util.Map;
 
-import wang.excel.common.model.BaseProduceParam;
 import wang.excel.common.iwf.impl.SimpleSwapCell;
+import wang.excel.common.model.BaseListProduceParam;
 import wang.excel.normal.produce.iwf.CellPostProcessor;
 import wang.excel.normal.produce.iwf.O2CellMiddleware;
-
 
 /**
  * 默认map构建
@@ -26,9 +25,9 @@ public class SimpleMapSheetModule extends SimpleSheetModule {
 	 * @param params    列－参数
 	 * @param cellPosts 单元格后置
 	 */
-	public SimpleMapSheetModule(List<Map<String, Object>> datas, String title, String[] keys, Map<String, String> titles, Map<String, BaseProduceParam> params, List<CellPostProcessor> cellPosts) {
+	public SimpleMapSheetModule(List<Map<String, Object>> datas, String title, String[] keys, Map<String, BaseListProduceParam> params, List<CellPostProcessor> cellPosts) {
 		super();
-		init(datas, title, keys, titles, params, cellPosts);
+		init(datas, title, keys, params, cellPosts);
 
 	}
 
@@ -41,7 +40,7 @@ public class SimpleMapSheetModule extends SimpleSheetModule {
 	 */
 	public SimpleMapSheetModule(List<Map<String, Object>> datas, String title, String[] keys) {
 		super();
-		init(datas, title, keys, null, null, null);
+		init(datas, title, keys, null, null);
 
 	}
 
@@ -55,15 +54,15 @@ public class SimpleMapSheetModule extends SimpleSheetModule {
 	 * @param excludes  明确过滤的属性名
 	 * @param cellPosts 单元格操作
 	 */
-	private void init(List<Map<String, Object>> datas, String title, String[] keys, Map<String, String> titles, Map<String, BaseProduceParam> params, List<CellPostProcessor> cellPosts) {
+	private void init(List<Map<String, Object>> datas, String title, String[] keys, Map<String, BaseListProduceParam> params, List<CellPostProcessor> cellPosts) {
 		O2CellMiddlewareBodyModule<Map<String, Object>> body = new O2CellMiddlewareBodyModule<Map<String, Object>>();
 		if (cellPosts != null) {
 			body.getCellPostProcessors().addAll(cellPosts);
 		}
-		O2CellMiddleware conver = new Map2CellMiddleware(keys, titles, params);
+		O2CellMiddleware conver = new Map2CellMiddleware(keys, params);
 		body.setMiddleware(conver);
 		body.setSwap(new SimpleSwapCell());
-		body.setDatas(datas);
+		body.setData(datas);
 		this.moduleBody = body;
 		this.moduleTitle = new ListTitleModule(title, conver.keys().length);
 	}

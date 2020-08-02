@@ -1,14 +1,15 @@
 package wang.biz.wrapper;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+
 import wang.biz.SpringTaskWrapperTemplate;
 import wang.process.core.Task;
 import wang.process.filter.TaskFilter;
 import wang.process.filter.TaskFilterWrapper;
-
-import java.util.List;
 
 /**
  * @Description 监听器包装,支持连续包装多个

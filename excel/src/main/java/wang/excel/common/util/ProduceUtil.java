@@ -1,12 +1,5 @@
 package wang.excel.common.util;
 
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
-import wang.excel.common.iwf.*;
-import wang.excel.common.model.*;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -15,6 +8,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
+
+import wang.excel.common.iwf.*;
+import wang.excel.common.model.*;
+
 @SuppressWarnings("rawtypes")
 public class ProduceUtil {
 
@@ -22,11 +23,11 @@ public class ProduceUtil {
 	 * 根据构建参数获取需要插入的cellData 支持对集合类型数据的转换
 	 * 
 	 * @param produceParam 构建参数
-	 * @param target      当前对象
-	 * @param key         当前属性名 支持对集合类型数据的转换 如果是个集合类型的字段 需要以 实际名[下标]形式去传参
+	 * @param target       当前对象
+	 * @param key          当前属性名 支持对集合类型数据的转换 如果是个集合类型的字段 需要以 实际名[下标]形式去传参
 	 * @return
 	 */
-	public static CellData key2CellDataConvertArr(BeanProduceParam produceParam, Object target, String key) {
+	public static CellData key2CellDataConvertArr(BaseProduceParam produceParam, Object target, String key) {
 		return key2CellData(produceParam, target, key, true);
 	}
 
@@ -34,14 +35,14 @@ public class ProduceUtil {
 	 * 根据构建参数获取需要插入的cellData 支持对集合类型数据的转换
 	 * 
 	 * @param produceParam 构建参数
-	 * @param target      当前对象
-	 * @param key         当前属性名
-	 * @param supportArr  是否支持对集合类型数据的转换 如果是个集合类型的字段 需要以 实际名[下标]形式去传参
+	 * @param target       当前对象
+	 * @param key          当前属性名
+	 * @param supportArr   是否支持对集合类型数据的转换 如果是个集合类型的字段 需要以 实际名[下标]形式去传参
 	 * @return
 	 */
-	public static CellData key2CellData(BeanProduceParam produceParam, Object target, String key, boolean supportArr) {
+	public static CellData key2CellData(BaseProduceParam produceParam, Object target, String key, boolean supportArr) {
 		CellData cellData = new CellData();
-		if(target==null){
+		if (target == null) {
 			return cellData;
 		}
 		Assert.notNull(key, "属性名不可为空");
@@ -56,11 +57,11 @@ public class ProduceUtil {
 				return produceConvert.convert(fieldVal);
 			}
 
-			String format = produceParam.getBeanInnerProduceConvert();
+			String format = produceParam.getMethodProduceConvert();
 			if (!StringUtils.isEmpty(format)) {// 需要转换
-				cellData = processCellDataUseInnerConvert(target, type, format);
+				cellData = processCellDataUseMethodConvert(target, type, format);
 			} else if (fieldVal != null && !StringUtils.isEmpty(fieldVal.toString())) {// 自动解析
-				ImgStore ie = produceParam.getImgStoreStrategy();
+				ImgStoreStrategy ie = produceParam.getImgStoreStrategy();
 				Map<String, String> dic = produceParam.getDicMap();
 				if (ie != null) {// 图片
 					processCellDataUseImg(produceParam, cellData, fieldVal, ie);
@@ -87,7 +88,7 @@ public class ProduceUtil {
 	 * @param fieldVal
 	 * @param dic
 	 */
-	private static void processCellDataUseDic(BeanProduceParam produceParam, CellData cellData, Object fieldVal, Map<String, String> dic) {
+	private static void processCellDataUseDic(BaseProduceParam produceParam, CellData cellData, Object fieldVal, Map<String, String> dic) {
 		cellData.setType(CellData.AUTO);
 		cellData.setValue(ExcelUtil.convertDic(dic, fieldVal, produceParam.isMultiChoice(), produceParam.getDicErr()));
 	}
@@ -100,11 +101,11 @@ public class ProduceUtil {
 	 * @param fieldVal
 	 * @param ie
 	 */
-	private static void processCellDataUseImg(BeanProduceParam produceParam, CellData cellData, Object fieldVal, ImgStore ie) {
+	private static void processCellDataUseImg(BaseProduceParam produceParam, CellData cellData, Object fieldVal, ImgStoreStrategy ie) {
 		cellData.setType(CellData.IMG);
 		BaseImgData beanImgData = new BeanImgData();
 		List<File> img = ie.recoverKey2Files(fieldVal.toString());
-		beanImgData.setImgProduce(produceParam.getImgProduce());
+		beanImgData.setImgProduceStrategy(produceParam.getImgProduceStrategy());
 		beanImgData.setImgFiles(img);
 		cellData.setValue(beanImgData);
 	}
@@ -117,7 +118,7 @@ public class ProduceUtil {
 	 * @param format 自定义函数说明
 	 * @return
 	 */
-	private static CellData processCellDataUseInnerConvert(Object target, Class type, String format) {
+	private static CellData processCellDataUseMethodConvert(Object target, Class type, String format) {
 		CellData cellData;
 		// 是否是静态函数
 		boolean staticMethod = format.contains(".");
@@ -130,10 +131,9 @@ public class ProduceUtil {
 				Method method = cz.getDeclaredMethod(methodName, Object.class);
 				method.setAccessible(true);
 				cellData = (CellData) method.invoke(null, target);
-
 			} else {
 				Method convert = ReflectionUtils.findMethod(type, format, Object.class);
-				Assert.notNull(convert, "自定义构建方法未找到");
+				Assert.notNull(convert, type + "中未找到构建方法:" + format);
 				convert.setAccessible(true);
 				cellData = (CellData) convert.invoke(target, target);
 			}
@@ -187,20 +187,20 @@ public class ProduceUtil {
 	}
 
 	/**
-	 * 从对象中获取属性
-	 * 支持 Map  和 Object
+	 * 从对象中获取属性 支持 Map 和 Object
+	 * 
 	 * @param obj 值
 	 * @param key key
 	 * @return
 	 */
-	public static Object getValFromObjectOrMap(Object obj, String key){
+	public static Object getValFromObjectOrMap(Object obj, String key) {
 		try {
 			return PropertyUtils.getProperty(obj, key);
-		}catch (Exception e){
-			if(obj instanceof Map){
-				return ((Map)obj).get(key);
+		} catch (Exception e) {
+			if (obj instanceof Map) {
+				return ((Map) obj).get(key);
 			}
-			throw new IllegalArgumentException(String.format("获取属性 %s 失败",key));
+			throw new IllegalArgumentException(String.format("获取属性 %s 失败", key));
 		}
 	}
 
@@ -208,7 +208,7 @@ public class ProduceUtil {
 	 * 根据构建参数和值 转换为 通用单元格对象
 	 * 
 	 * @param produceParam 构建参数
-	 * @param val         实际值
+	 * @param val          实际值
 	 * @return
 	 */
 	public static CellData o2CellData(BaseProduceParam produceParam, Object val) {
@@ -217,13 +217,13 @@ public class ProduceUtil {
 			cellData.setValue(val);
 		} else {
 			if (val != null && !StringUtils.isEmpty(val.toString())) {// 自动解析
-				ImgStore ie = produceParam.getImgStoreStrategy();
+				ImgStoreStrategy ie = produceParam.getImgStoreStrategy();
 				Map<String, String> dic = produceParam.getDicMap();
-				if (ie != null ) {// 图片
+				if (ie != null) {// 图片
 					cellData.setType(CellData.IMG);
 					BaseImgData imgData = new MapImgData();
 					List<File> img = ie.recoverKey2Files(val.toString());
-					imgData.setImgProduce(produceParam.getImgProduce());
+					imgData.setImgProduceStrategy(produceParam.getImgProduceStrategy());
 					imgData.setImgFiles(img);
 					cellData.setValue(imgData);
 				} else if (dic != null) {// 字典
@@ -244,41 +244,67 @@ public class ProduceUtil {
 	}
 
 	/**
-	 * 解析字段上的注解 Excel 或 excel 获取构建时的信息
+	 * 解析字段上的注解 Excel
 	 * 
-	 * @param field
-	 * @return
+	 * @param field 字段
+	 * @return 行式构建参数
 	 */
-	public static BeanProduceParam field2ProduceParam(Field field) {
+	public static BeanProduceParam field2BeanProduceParam(Field field) {
 		Assert.notNull(field, "要获取构建参数,field不可为空");
 		BeanProduceParam cp = new BeanProduceParam();
 		Excel ew = field.getAnnotation(Excel.class);
 		if (ew != null) {
 			// 字典
-			Map<String, String> dicMap = DicFactory.get(ew.dicGroup(),true);
-			if (dicMap==null && ew.replace().length > 0) {
+			Map<String, String> dicMap = DicFactory.get(ew.dicGroup(), true);
+			if (dicMap == null && ew.replace().length > 0) {
 				dicMap = ExcelUtil.initDicMap(ew.replace(), true);
 			}
 			cp.setDicMap(dicMap);
 			cp.setWidth(ew.width());
 			cp.setHeight(ew.height());
-//			cp.setName(StringUtils.isEmpty(ew.name())?field.getName():ew.name());
 			// 转换
-			String produceFormat = StringUtils.isEmpty(ew.innerProduceConvert().trim()) ? null : ew.innerProduceConvert().trim();
-			cp.setBeanInnerProduceConvert(produceFormat);
+			String produceFormat = StringUtils.isEmpty(ew.methodProduceConvert().trim()) ? null : ew.methodProduceConvert().trim();
+			cp.setMethodProduceConvert(produceFormat);
 			// 图片生成策略
-			cp.setImgStoreStrategy(ImgStoreFactory.get(ew.imgStoreStrategy()));
+			cp.setImgStoreStrategy(ImgStoreStrategyFactory.get(ew.imgStoreStrategy()));
 			cp.setDicErr(ew.dicErr());
 			cp.setMultiChoice(ew.multiChoice());
 			cp.setNullStr(ew.nullStr());
-			cp.setImgProduce(ew.imgProduceStrategy());
+			cp.setImgProduceStrategy(ew.imgProduceStrategy());
 			cp.setOrder(ew.order());
+			cp.setName(ew.name());
 		} else {// 兼容处理
-			// 没有注解
-			cp.setImgStoreStrategy(null);
-			cp.setNullStr("");
-			cp.setHeight((short) 10);
-			cp.setWidth(10);
+			cp.setName(field.getName());
+		}
+		return cp;
+	}
+
+	/**
+	 * 解析字段上的注解 Excel
+	 *
+	 * @param field 字段
+	 * @return 基础构建参数
+	 */
+	public static BaseProduceParam field2BaseProduceParam(Field field) {
+		Assert.notNull(field, "要获取构建参数,field不可为空");
+		BaseProduceParam cp = new BaseProduceParam();
+		Excel ew = field.getAnnotation(Excel.class);
+		if (ew != null) {
+			// 字典
+			Map<String, String> dicMap = DicFactory.get(ew.dicGroup(), true);
+			if (dicMap == null && ew.replace().length > 0) {
+				dicMap = ExcelUtil.initDicMap(ew.replace(), true);
+			}
+			cp.setDicMap(dicMap);
+			// 转换
+			String produceFormat = StringUtils.isEmpty(ew.methodProduceConvert().trim()) ? null : ew.methodProduceConvert().trim();
+			cp.setMethodProduceConvert(produceFormat);
+			// 图片生成策略
+			cp.setImgStoreStrategy(ImgStoreStrategyFactory.get(ew.imgStoreStrategy()));
+			cp.setDicErr(ew.dicErr());
+			cp.setMultiChoice(ew.multiChoice());
+			cp.setNullStr(ew.nullStr());
+			cp.setImgProduceStrategy(ew.imgProduceStrategy());
 		}
 		return cp;
 	}

@@ -1,27 +1,28 @@
 package wang.process.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-import wang.process.filter.StepInfoFilter;
-import wang.process.filter.TimeoutFilter;
-import wang.process.util.ProcessUtil;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+
+import wang.process.filter.StepInfoFilter;
+import wang.process.filter.TimeoutFilter;
+import wang.process.util.ProcessUtil;
+
 /**
  * 基础流执行器
  */
 public class ProcessExecutor implements Chain<SimpleProcess>, Executor<SimpleProcess> {
-	private static Logger log = LoggerFactory.getLogger(ProcessExecutor.class);
 	/**
 	 * 此线程池服务于异步操作,0核心线程,60s空闲回收,空队列(每个任务来如果没有线程可用,不会进队列,都会开启一个线程执行)
 	 * 防止任务进来由于线程调度问题,执行不了,导致异步执行时,所有人都在占着线程等他,他又在等着别人释放线程造成逻辑死锁
 	 */
 	private static final ExecutorService defaultFutureExecutor = Executors.newCachedThreadPool(new ProcessThreadFactory());
+	private static Logger log = LoggerFactory.getLogger(ProcessExecutor.class);
 
 	/**
 	 * 单例
@@ -131,7 +132,7 @@ public class ProcessExecutor implements Chain<SimpleProcess>, Executor<SimplePro
 		List<Step> steps = process.getSteps();
 		// 执行
 		try {
-			//执行前的包装处理
+			// 执行前的包装处理
 			preStart(process);
 			// 设置期望步骤数
 			process.setHopeStep(steps.size());
@@ -154,8 +155,8 @@ public class ProcessExecutor implements Chain<SimpleProcess>, Executor<SimplePro
 	}
 
 	/**
-	 * 执行链路的下一步
-	 * 不可直接调用
+	 * 执行链路的下一步 不可直接调用
+	 * 
 	 * @param process
 	 */
 	@Override
@@ -237,8 +238,8 @@ public class ProcessExecutor implements Chain<SimpleProcess>, Executor<SimplePro
 	}
 
 	/**
-	 * 执行前函数
-	 * 可修改为protected子类可继承扩展
+	 * 执行前函数 可修改为protected子类可继承扩展
+	 * 
 	 * @param process
 	 */
 	private void preStart(SimpleProcess process) {
@@ -291,12 +292,12 @@ public class ProcessExecutor implements Chain<SimpleProcess>, Executor<SimplePro
 		@Override
 		public Thread newThread(Runnable r) {
 			Thread t = new Thread(r, namePrefix + threadNumber.getAndIncrement());
-			if (t.isDaemon()){
-				//非守护线程
-				//总不能说正在干活呢,别的线程停了我就得停吧,我命由我不由他
+			if (t.isDaemon()) {
+				// 非守护线程
+				// 总不能说正在干活呢,别的线程停了我就得停吧,我命由我不由他
 				t.setDaemon(false);
 			}
-			if (t.getPriority() != Thread.NORM_PRIORITY){
+			if (t.getPriority() != Thread.NORM_PRIORITY) {
 				t.setPriority(Thread.NORM_PRIORITY);
 			}
 			return t;
@@ -310,8 +311,7 @@ public class ProcessExecutor implements Chain<SimpleProcess>, Executor<SimplePro
 		private static final ProcessExecutor instance = new ProcessExecutor();
 
 		/**
-		 * 超时任务阻塞队列(时间排序)
-		 * 为什么不用Timer 经测试Timer有点占资源还是咋地,这里需要的功能不复杂,所以,这里搞个线程刷就行了
+		 * 超时任务阻塞队列(时间排序) 为什么不用Timer 经测试Timer有点占资源还是咋地,这里需要的功能不复杂,所以,这里搞个线程刷就行了
 		 */
 		private static final BlockingQueue<TimeoutContainer> timeoutQueue = new PriorityBlockingQueue<>();
 
@@ -337,14 +337,14 @@ public class ProcessExecutor implements Chain<SimpleProcess>, Executor<SimplePro
 							Thread.sleep(sleep);
 						}
 						SimpleProcess process = take.process;
-						//没结束的环境超时打标
+						// 没结束的环境超时打标
 						if (!process.isEnd()) {
 							log.warn("process[" + process.getName() + "] traceId:{}设置为超时!{}ms", process.getTraceId(), process.getTimeout());
 							process.markTimeout();
-							//如果是异步执行的,就cancel(如果此时有调用get函数会抛出异常)
+							// 如果是异步执行的,就cancel(如果此时有调用get函数会抛出异常)
 							CompletableFuture<Void> future = process.getFuture();
-							if (future!=null) {
-								//已超时结束
+							if (future != null) {
+								// 已超时结束
 								future.completeExceptionally(new ProcessException.TimeoutException("执行超时!"));
 							}
 						}
@@ -354,7 +354,7 @@ public class ProcessExecutor implements Chain<SimpleProcess>, Executor<SimplePro
 					startTimeoutMonitor();
 				}
 			}, "process 超时检测线程");
-			if(!thread.isDaemon()){
+			if (!thread.isDaemon()) {
 				// 守护线程
 				thread.setDaemon(true);
 			}

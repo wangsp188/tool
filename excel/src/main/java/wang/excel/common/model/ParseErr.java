@@ -11,20 +11,34 @@ import java.util.List;
  */
 public class ParseErr extends ParseOneResult {
 
-	private List<ErrInfo> errInfos;
+	private final List<ErrInfo> errInfos = new ArrayList<>();
 
 	public ParseErr() {
 		super();
 	}
 
 	public ParseErr(String errMsg) {
-		this(null,null, null, errMsg);
+		this(null, null, null, errMsg);
 	}
 
-	public ParseErr(String sheetName,Integer rowNum, Integer colNum, String errMsg) {
+	public ParseErr(String sheetName, Integer rowNum, Integer colNum, String errMsg) {
 		this();
-		errInfos = new ArrayList<>();
 		errInfos.add(new ErrInfo(sheetName, rowNum, colNum, errMsg));
+	}
+
+	/**
+	 * 添加错误信息
+	 *
+	 * @param rowNum
+	 * @param colNum
+	 * @param errMsg
+	 * @return
+	 */
+	public ParseErr addErrInfo(ErrInfo info) {
+		if (info != null) {
+			errInfos.add(info);
+		}
+		return this;
 	}
 
 	/**
@@ -35,12 +49,8 @@ public class ParseErr extends ParseOneResult {
 	 * @param errMsg
 	 * @return
 	 */
-	public ParseErr addErrInfo(String sheetName,Integer rowNum, Integer colNum, String errMsg) {
-		if (errInfos == null) {
-			errInfos = new ArrayList<>();
-		}
-		errInfos.add(new ErrInfo(sheetName, rowNum, colNum, errMsg));
-		return this;
+	public ParseErr addErrInfo(String sheetName, Integer rowNum, Integer colNum, String errMsg) {
+		return addErrInfo(new ErrInfo(sheetName, rowNum, colNum, errMsg));
 	}
 
 	/**
@@ -52,41 +62,20 @@ public class ParseErr extends ParseOneResult {
 		return errInfos == null ? 0 : errInfos.size();
 	}
 
-	/**
-	 * 添加错误信息
-	 * 
-	 * @param rowNum
-	 * @param colNum
-	 * @param errMsg
-	 * @return
-	 */
-	public ParseErr addErrInfo(ErrInfo info) {
-		if (info != null) {
-			if (errInfos == null) {
-				errInfos = new ArrayList<>();
-			}
-			errInfos.add(info);
-		}
-
-		return this;
-	}
-
 	@Override
 	public boolean isSuccess() {
 		return false;
 	}
 
 	@Override
-	public String detail() {
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		String str = resource==null?null:resource.desc();
+		String str = resource == null ? null : resource.toString();
 		if (str != null)
 			sb.append(str);
-		if (errInfos != null) {
-			for (ErrInfo err : errInfos) {
-				if (err != null) {
-					sb.append(err.toString()).append("；");
-				}
+		for (ErrInfo err : errInfos) {
+			if (err != null) {
+				sb.append(err.toString()).append("；");
 			}
 		}
 		return sb.toString();
@@ -96,12 +85,11 @@ public class ParseErr extends ParseOneResult {
 		return errInfos;
 	}
 
-	public void setErrInfos(List<ErrInfo> errInfos) {
-		this.errInfos = errInfos;
-	}
-
 	// 错误信息描述
 	public static class ErrInfo {
+		/**
+		 * 信息
+		 */
 		private String msg;
 
 		/**
@@ -118,10 +106,24 @@ public class ParseErr extends ParseOneResult {
 		 */
 		private Integer colNum;
 
+		public ErrInfo() {
+		}
+
+		public ErrInfo(String msg) {
+			this.msg = msg;
+		}
+
+		public ErrInfo(String sheetName, Integer rowNum, Integer colNum, String msg) {
+			this.sheetName = sheetName;
+			this.msg = msg;
+			this.rowNum = rowNum;
+			this.colNum = colNum;
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
-			if(sheetName!=null){
+			if (sheetName != null) {
 				sb.append("表:").append(sheetName);
 			}
 			if (rowNum != null) {
@@ -136,21 +138,6 @@ public class ParseErr extends ParseOneResult {
 			return sb.toString();
 		}
 
-		public ErrInfo() {
-		}
-
-		public ErrInfo(String msg) {
-			this.msg = msg;
-		}
-
-		public ErrInfo(String sheetName, int rowNum, int colNum, String msg) {
-			this.sheetName = sheetName;
-			this.msg = msg;
-			this.rowNum = rowNum;
-			this.colNum = colNum;
-		}
-
 	}
-
 
 }

@@ -1,7 +1,7 @@
 package wang.excel.common.model;
 
 /**
- * 语义化,暂时无额外操作
+ * map构建参数,暂时无额外操作
  */
-public class MapProduceParam extends BaseProduceParam {
+public class MapProduceParam extends BaseListProduceParam {
 }

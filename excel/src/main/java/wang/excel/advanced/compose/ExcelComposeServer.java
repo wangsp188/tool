@@ -1,11 +1,13 @@
 package wang.excel.advanced.compose;
 
-import wang.excel.advanced.compose.iwf.WorkbookProcess;
-import wang.excel.advanced.compose.model.WorkbookPart;
-import wang.excel.common.iwf.SheetCopy;
-import wang.excel.common.iwf.WorkbookType;
-import wang.excel.common.iwf.impl.SimpleSheetCopy;
-import wang.excel.common.model.ResultSuper;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFFont;
@@ -15,19 +17,17 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import wang.excel.advanced.compose.iwf.WorkbookProcess;
+import wang.excel.advanced.compose.model.WorkbookPart;
+import wang.excel.common.iwf.SheetCopy;
+import wang.excel.common.iwf.WorkbookType;
+import wang.excel.common.iwf.impl.SimpleSheetCopy;
+import wang.excel.common.model.ResultSuper;
 
 /**
  * 组合拼接workbook
  */
 public class ExcelComposeServer {
-
 
 	/**
 	 * 成员
@@ -224,7 +224,7 @@ public class ExcelComposeServer {
 					// 如果补忽略异常就直接砍掉所有线程
 					if (fastReturn) {
 						// 解锁线程
-						while (countDownLatch.getCount()>0){
+						while (countDownLatch.getCount() > 0) {
 							countDownLatch.countDown();
 						}
 						// 停止线程
@@ -286,6 +286,14 @@ public class ExcelComposeServer {
 		this.workbookType = workbookType;
 	}
 
+	public boolean isIgnoreBuildException() {
+		return ignoreBuildException;
+	}
+
+	public void setIgnoreBuildException(boolean ignoreBuildException) {
+		this.ignoreBuildException = ignoreBuildException;
+	}
+
 	/**
 	 * 拦截获取workbook
 	 */
@@ -314,14 +322,6 @@ public class ExcelComposeServer {
 			// 执行
 			return method.invoke(workbookProcess, args);
 		}
-	}
-
-	public boolean isIgnoreBuildException() {
-		return ignoreBuildException;
-	}
-
-	public void setIgnoreBuildException(boolean ignoreBuildException) {
-		this.ignoreBuildException = ignoreBuildException;
 	}
 
 }

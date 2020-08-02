@@ -1,16 +1,14 @@
 package wang.util;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class ReflectUtil {
-
 
 	/**
 	 * 获取泛型 遇到类似于 <T> T的类似的泛型，会过滤掉，只返回有效泛型
@@ -42,8 +40,6 @@ public class ReflectUtil {
 		return new Class[0];
 	}
 
-
-
 	/**
 	 * 判断对象是否重写Obejct的toString方法
 	 * 
@@ -64,7 +60,7 @@ public class ReflectUtil {
 	 * @return
 	 */
 	public static boolean isOverWrite(Class superClass, Object obj, String methodName, Class... paramTypes) {
-		if(superClass==null){
+		if (superClass == null) {
 			throw new IllegalArgumentException("需要检验的父类不可为空");
 		}
 		if (!superClass.isInstance(obj)) {
@@ -89,8 +85,8 @@ public class ReflectUtil {
 	public static boolean isBaseType(Class type) {
 		if (type == null)
 			return false;
-        return type.equals(Integer.class) || type.equals(int.class) || type.equals(Byte.class) || type.equals(byte.class) || type.equals(Long.class) || type.equals(long.class) || type.equals(Double.class) || type.equals(double.class) || type.equals(Float.class) || type.equals(float.class) || type.equals(Character.class) || type.equals(char.class) || type.equals(Short.class) || type.equals(short.class) || type.equals(Boolean.class) || type.equals(boolean.class);
-    }
+		return type.equals(Integer.class) || type.equals(int.class) || type.equals(Byte.class) || type.equals(byte.class) || type.equals(Long.class) || type.equals(long.class) || type.equals(Double.class) || type.equals(double.class) || type.equals(Float.class) || type.equals(float.class) || type.equals(Character.class) || type.equals(char.class) || type.equals(Short.class) || type.equals(short.class) || type.equals(Boolean.class) || type.equals(boolean.class);
+	}
 
 	/**
 	 * 判断class是否为基本类型或包装类或者字符串
@@ -114,7 +110,7 @@ public class ReflectUtil {
 	 * @return
 	 */
 	public static boolean canInstance(Class cz) {
-		if(cz==null){
+		if (cz == null) {
 			throw new IllegalArgumentException("类不可为空");
 		}
 		if (cz.isPrimitive()) {
@@ -126,7 +122,5 @@ public class ReflectUtil {
 		}
 		return false;
 	}
-
-
 
 }

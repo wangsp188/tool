@@ -3,7 +3,7 @@ package wang.excel.common.iwf;
 /**
  * 字典解析失败的处理港式
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 public enum DicErr {

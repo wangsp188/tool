@@ -1,6 +1,5 @@
 package wang.excel.normal.produce.iwf;
 
-
 import wang.excel.common.model.CellData;
 
 /**
@@ -9,5 +8,5 @@ import wang.excel.common.model.CellData;
  * @param <T>
  */
 public interface WrapO2CellData<T> {
-	CellData data(O2CellMiddleware<T> wraped, T t, String key, Integer index);
+	CellData data(O2CellMiddleware<T> delegate, T t, String key, Integer index);
 }

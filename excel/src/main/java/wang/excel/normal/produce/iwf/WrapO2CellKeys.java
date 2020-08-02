@@ -7,5 +7,5 @@ package wang.excel.normal.produce.iwf;
  */
 public interface WrapO2CellKeys<T> {
 
-	String[] keys(O2CellMiddleware<T> wraped);
+	String[] keys(O2CellMiddleware<T> delegate);
 }

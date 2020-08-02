@@ -1,5 +1,12 @@
 package wang.excel.template.parse;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -7,20 +14,14 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+
 import wang.excel.common.iwf.ParseConvert;
 import wang.excel.common.model.*;
 import wang.excel.common.util.ExcelUtil;
 import wang.excel.common.util.ParseUtil;
 import wang.excel.template.parse.iwf.ParseModify;
-import wang.excel.template.parse.model.RecordInfo;
+import wang.excel.template.parse.model.TemplateCoordinate;
 import wang.util.ReflectUtil;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 普通模板解析构建实现 依赖于 @Excel
@@ -29,8 +30,7 @@ import java.util.regex.Pattern;
  * produceModify 实现 模板 的key格式类似于 spring的实体解析 以#{}包裹 形似 #{wo.ni[4].ta}
  * 主实体中字段wo中集合ni的第5个的属性ta
  *
- * @author Administrator
- * @param <E>
+ * @author wangshaopeng
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class ExcelTemplateParseServer {
@@ -47,7 +47,7 @@ public class ExcelTemplateParseServer {
 	/**
 	 * 模版信息
 	 */
-	private List<RecordInfo> recordInfos;
+	private List<TemplateCoordinate> templateCoordinates;
 	/**
 	 * 解析修正接口
 	 */
@@ -59,20 +59,8 @@ public class ExcelTemplateParseServer {
 	 */
 	private Map<String, ParseConvert> convertMap;
 
-
 	public ExcelTemplateParseServer() {
 		super();
-	}
-
-	public ExcelTemplateParseServer(ExcelTemplateParseDescribe describe) {
-		super();
-		if (StringUtils.isNotEmpty(describe.getTemplatePath())) {
-			try {
-				this.templateIs = describe.getTemplateInputStream();
-			} catch (Exception e) {
-				throw new RuntimeException("解析模板源获取失败!");
-			}
-		}
 	}
 
 	/**
@@ -87,8 +75,6 @@ public class ExcelTemplateParseServer {
 		}
 		convertMap.put(key, parseConvert);
 	}
-
-
 
 	/**
 	 * 解析
@@ -105,28 +91,28 @@ public class ExcelTemplateParseServer {
 			}
 			Assert.notNull(templateIs, "解析模板源为空");
 			// 清空错误数量
-			errorCounter.restore();
+			errorCounter.revert();
 			// 读取模板和数据源并保存信息
-			List<RecordInfo> recores = recordInfos;
-			if (recores == null) {
+			List<TemplateCoordinate> coordinates = templateCoordinates;
+			if (coordinates == null) {
 				// 加锁解析,防止多线程冲突
 				synchronized (this) {
-					if (recordInfos == null) {
-						recordInfos = recores = parseTemplate(templateIs);
+					if (templateCoordinates == null) {
+						templateCoordinates = coordinates = parseTemplate(templateIs);
 					} else {
-						recores = recordInfos;
+						coordinates = templateCoordinates;
 					}
 				}
 			}
 
 			Workbook resourceWorkbook = WorkbookFactory.create(resource);
 			// 解析
-			result = record2Entity(typeClass,recores, resourceWorkbook);
+			result = coordinate2Entity(typeClass, coordinates, resourceWorkbook);
 		} catch (Exception e) {
 			e.printStackTrace();
 			result = new ParseErr("未知错误" + e.getMessage());
 		} finally {
-			if(templateIs !=null){
+			if (templateIs != null) {
 				try {
 					templateIs.close();
 				} catch (IOException e) {
@@ -141,12 +127,12 @@ public class ExcelTemplateParseServer {
 	/**
 	 * 读取模板
 	 *
-	 * @param templateWb 模版
+	 * @param importIs 模版
 	 * @return
 	 */
-	private List<RecordInfo> parseTemplate(InputStream importIs) throws IOException, InvalidFormatException {
+	private List<TemplateCoordinate> parseTemplate(InputStream importIs) throws IOException, InvalidFormatException {
 		Workbook templateWb = WorkbookFactory.create(importIs);
-		List<RecordInfo> recores = new ArrayList<>();
+		List<TemplateCoordinate> recores = new ArrayList<>();
 		for (int i = 0; i < templateWb.getNumberOfSheets(); i++) {
 			Sheet sheet = templateWb.getSheetAt(i);
 			for (Row row : sheet) {
@@ -163,7 +149,7 @@ public class ExcelTemplateParseServer {
 						Set<String> keyS = matchAndReturn(allKey, true);
 						if (!CollectionUtils.isEmpty(keyS)) {
 							for (String matchKey : keyS) {
-								RecordInfo record = new RecordInfo(i, cell);
+								TemplateCoordinate record = new TemplateCoordinate(i, cell);
 								record.setKey(matchKey);
 								recores.add(record);
 							}
@@ -179,13 +165,12 @@ public class ExcelTemplateParseServer {
 	/**
 	 * 解析核心函数,解析数据
 	 *
-	 * @param root    根root
-	 * @param records 坐标信息
+	 * @param coordinates 坐标信息
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
 	 * @throws Exception              错误信息 抛出的异常是带异常描述信息 如 第几张表的第几行第几列什么错误
 	 */
-	private <T> ParseOneResult<T> record2Entity(Class<T> typeClass,List<RecordInfo> records, Workbook targetWorkbook) throws RuntimeException, InstantiationException, IllegalAccessException {
+	private <T> ParseOneResult<T> coordinate2Entity(Class<T> typeClass, List<TemplateCoordinate> coordinates, Workbook targetWorkbook) throws RuntimeException, InstantiationException, IllegalAccessException {
 		// 遍历记录,读取数据源
 		ParseOneResult<T> result = null;
 
@@ -197,7 +182,7 @@ public class ExcelTemplateParseServer {
 		Map<String, BeanParseParam> cacheParam = new HashMap<>();
 		// 图片解析缓存
 		Map<String, Map<String, List<PictureData>>> sheetImgMapCache = new HashMap<>();
-		for (RecordInfo record : records) {
+		for (TemplateCoordinate record : coordinates) {
 			try {
 				try {
 					sheet = targetWorkbook.getSheetAt(record.getSheetAt());
@@ -219,7 +204,7 @@ public class ExcelTemplateParseServer {
 					result = new ParseErr();
 				}
 				String msg = e.getMessage();
-				ParseErr.ErrInfo errInfo = new ParseErr.ErrInfo(sheet.getSheetName(),rowNum,colNum,msg);
+				ParseErr.ErrInfo errInfo = new ParseErr.ErrInfo(sheet.getSheetName(), rowNum, colNum, msg);
 				((ParseErr) result).addErrInfo(errInfo);
 				// 数量太多,返回
 				try {
@@ -249,7 +234,7 @@ public class ExcelTemplateParseServer {
 	 * @param targetCell 当前单元格
 	 * @throws Exception
 	 */
-	private void caseFlow(int rowNum, int colNum, Object root, Map<String, BeanParseParam> cacheParam, RecordInfo record, Map<String, List<PictureData>> imgMap, Cell targetCell) throws Exception {
+	private void caseFlow(int rowNum, int colNum, Object root, Map<String, BeanParseParam> cacheParam, TemplateCoordinate record, Map<String, List<PictureData>> imgMap, Cell targetCell) throws Exception {
 		String allKey = record.getKey();
 		// 匹配流数组
 		List<String> caseFlow = Arrays.asList(allKey.split("\\."));
@@ -344,17 +329,17 @@ public class ExcelTemplateParseServer {
 		Object endVal;
 		ParseConvert parseConvert = fp.getParseConvert();
 
-		List<PictureData> imgs;
+		List<PictureData> img;
 		if (targetCell != null) {
-			imgs = ExcelUtil.getCellImg(imgMap, targetCell);
+			img = ExcelUtil.getCellImg(imgMap, targetCell);
 		} else {
 			// 单元格可能失空
-			imgs = imgMap.get(rowNum + "_" + colNum);
+			img = imgMap.get(rowNum + "_" + colNum);
 		}
 		if (parseConvert != null) {
-			endVal = parseConvert.parse(targetCell, imgs);
+			endVal = parseConvert.parse(targetCell, img);
 		} else {
-			endVal = ParseUtil.parseCell(current, fp, endField, targetCell, imgs, null);
+			endVal = ParseUtil.parseCell(current, fp, endField, targetCell, img, null);
 		}
 
 		if (endVal == null && !fp.isNullable()) {
@@ -419,7 +404,7 @@ public class ExcelTemplateParseServer {
 				throw new RuntimeException("获取属性失败,当前" + current + "属性:" + main);
 			}
 			Field field = ReflectionUtils.findField(current.getClass(), main);
-			Assert.notNull(field,"获取属性失败,类:"+current.getClass()+"属性:"+main);
+			Assert.notNull(field, "获取属性失败,类:" + current.getClass() + "属性:" + main);
 			Class[] types = ReflectUtil.getFieldActualType(field);
 			if (types.length != 1) {
 				throw new IllegalArgumentException("请指定集合中具体泛型,或泛型不规范");
@@ -449,14 +434,14 @@ public class ExcelTemplateParseServer {
 	private List instanceListByField(Field field) throws InstantiationException, IllegalAccessException {
 		List many;
 		Class type = field.getType();
-		if(ReflectUtil.canInstance(type)){
+		if (ReflectUtil.canInstance(type)) {
 			many = (List) type.newInstance();
-		}else if(type.isAssignableFrom(ArrayList.class)){
+		} else if (type.isAssignableFrom(ArrayList.class)) {
 			many = new ArrayList();
-		}else if(type.isAssignableFrom(LinkedList.class)){
+		} else if (type.isAssignableFrom(LinkedList.class)) {
 			many = new LinkedList();
-		}else{
-			throw new IllegalArgumentException("类型["+type+"]不可实例化");
+		} else {
+			throw new IllegalArgumentException("类型[" + type + "]不可实例化");
 		}
 		return many;
 	}
@@ -483,7 +468,7 @@ public class ExcelTemplateParseServer {
 			}
 			if (one == null) {// 如果是null,初始化
 				Field field = ReflectionUtils.findField(current.getClass(), main);
-				Assert.notNull(field,"获取属性失败,类:"+current.getClass()+"属性:"+main);
+				Assert.notNull(field, "获取属性失败,类:" + current.getClass() + "属性:" + main);
 
 				Object object = null;
 				try {
@@ -503,7 +488,7 @@ public class ExcelTemplateParseServer {
 			}
 
 			Field field = ReflectionUtils.findField(current.getClass(), main);
-			Assert.notNull(field,"获取属性失败,类:"+current.getClass()+"属性:"+main);
+			Assert.notNull(field, "获取属性失败,类:" + current.getClass() + "属性:" + main);
 
 			Class[] types = ReflectUtil.getFieldActualType(field);
 			if (types.length != 1) {
@@ -538,10 +523,6 @@ public class ExcelTemplateParseServer {
 		}
 		return co;
 	}
-
-
-
-
 
 	/**
 	 * 解析字符串是否匹配指定规则并将结果取出返回 已经取出中间多余的空格 分段匹配,,
@@ -582,7 +563,6 @@ public class ExcelTemplateParseServer {
 		this.templateIs = templateIs;
 	}
 
-
 	public ParseModify getModify() {
 		return modify;
 	}
@@ -607,4 +587,4 @@ public class ExcelTemplateParseServer {
 		this.errorCounter = errorCounter;
 	}
 
-	}
+}

@@ -6,5 +6,5 @@ package wang.excel.normal.produce.iwf;
  * @param <T>
  */
 public interface WrapO2CellTitle<T> {
-	String title(O2CellMiddleware<T> wraped, String key);
+	String title(O2CellMiddleware<T> delegate, String key);
 }

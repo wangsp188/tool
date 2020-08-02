@@ -1,16 +1,13 @@
 package wang.excel.normal.produce.iwf.impl;
 
-import wang.excel.normal.produce.iwf.Body;
-import wang.excel.normal.produce.iwf.SheetModule;
-import wang.excel.normal.produce.iwf.Title;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import wang.excel.normal.produce.iwf.Foot;
+import wang.excel.normal.produce.iwf.SheetModule;
 
 /**
  * 默认表格模块 有三部分组成 头 身 尾
  */
-public class SimpleSheetModule extends SemanticModule implements Title, Body, Foot {
+public class SimpleSheetModule implements SheetModule {
 
 	/**
 	 * 头
@@ -37,30 +34,21 @@ public class SimpleSheetModule extends SemanticModule implements Title, Body, Fo
 	}
 
 	@Override
-	public int compareTo(SheetModule o) {
-		// 永远最前面
-		return 1;
-	}
-
-	@Override
-	public void body(Sheet sheet) {
-		if (moduleBody != null) {
-			moduleBody.body(sheet);
-		}
-	}
-
-	@Override
-	public void foot(Sheet sheet) {
-		if (moduleFoot != null) {
-			moduleFoot.foot(sheet);
-		}
-	}
-
-	@Override
-	public void title(Sheet sheet) {
+	public void sheet(Sheet sheet) {
 		if (moduleTitle != null) {
-			moduleTitle.title(sheet);
+			moduleTitle.sheet(sheet);
 		}
+		if (moduleBody != null) {
+			moduleBody.sheet(sheet);
+		}
+		if (moduleFoot != null) {
+			moduleFoot.sheet(sheet);
+		}
+	}
+
+	@Override
+	public int getOrder() {
+		return Integer.MIN_VALUE + 100;
 	}
 
 	public Title getModuleTitle() {

@@ -1,7 +1,12 @@
 package wang.excel.common.iwf;
 
 public enum WorkbookType {
-	HSSF(1, ".xls"), XSSF(2, ".xlsx");
+	/**
+	 * 强烈建议 比XSSF稳定且快速
+	 */
+	HSSF(1, ".xls"),
+
+	XSSF(2, ".xlsx");
 
 	private int type;
 	private String suffix;

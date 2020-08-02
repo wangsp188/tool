@@ -1,46 +1,41 @@
 package wang.excel.normal.parse.iwf;
 
-import org.apache.poi.ss.usermodel.Sheet;
-import wang.excel.common.model.ParseOneResult;
-import wang.excel.normal.parse.model.ColParseParam;
-import wang.excel.normal.parse.model.ParseParam;
-
 import java.util.List;
+
+import org.apache.poi.ss.usermodel.Sheet;
+
+import wang.excel.common.model.ParseOneResult;
+import wang.excel.normal.parse.model.ListParseParam;
+import wang.excel.normal.parse.model.ParseParam;
 
 /**
  * 行解析excel解析基本实现
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 public interface Parse2Bean {
 	/**
 	 * 初始化状态函数
 	 * 
-	 * @param sheet          当前表
-	 * @param colParseParams 表头解析结果
-	 * @param param          表解析参数
+	 * @param sheet           当前表
+	 * @param listParseParams 表头解析结果
+	 * @param param           表解析参数
 	 */
-	void init(Sheet sheet, List<ColParseParam> colParseParams, ParseParam param);
+	void init(Sheet sheet, List<ListParseParam> listParseParams, ParseParam param);
 
 	/**
-	 * 判断还有需要解析的参数么
-	 * 
-	 * @return
+	 * @return 判断还有需要解析的参数么
 	 */
 	boolean has();
 
 	/**
-	 * 解析一个实体
-	 * 
-	 * @return
+	 * @return 解析一个实体
 	 */
 	ParseOneResult next();
 
 	/**
-	 * 是否支持一对多
-	 * 
-	 * @return
+	 * @return 是否支持嵌套
 	 */
 	boolean supportNested();
 

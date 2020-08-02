@@ -1,8 +1,5 @@
 package wang.excel.common.iwf;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.springframework.util.ReflectionUtils;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -10,13 +7,16 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.springframework.util.ReflectionUtils;
+
 /**
  * 图片构建策略
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
-public enum ImgProduce {
+public enum ImgProduceStrategy {
 	/**
 	 * 自适应 如果单元格大,图片原大小输出,如果单元格小,图片比例缩小
 	 */
@@ -37,15 +37,15 @@ public enum ImgProduce {
 	/**
 	 * 大小和位置随单元格大小变化
 	 */
-	aucho_0,
+	achoo_0,
 	/**
 	 * 大小固定,位置随单元格动
 	 */
-	aucho_2,
+	achoo_2,
 	/**
 	 * 大小固定,位置固定
 	 */
-	aucho_3;
+	achoo_3;
 
 	/**
 	 * 获取并执行自定义插入图片函数,,函数调用失败会抛出异常
@@ -58,7 +58,7 @@ public enum ImgProduce {
 	 * @throws InstantiationException
 	 */
 	public static void getAndInvokeDiyMethod(Field field, List<File> files, Cell cell) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		if(field==null){
+		if (field == null) {
 			throw new IllegalArgumentException("diy插入图片,字段不可为空");
 		}
 		String name = "diy_" + field.getName();
@@ -85,10 +85,10 @@ public enum ImgProduce {
 	 * @throws InstantiationException
 	 */
 	public static double invokeResizeMethod(Method resize, File file, int index, Cell cell) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		if(resize==null){
+		if (resize == null) {
 			throw new IllegalArgumentException("resize函数不可为空");
 		}
-		Double re = null;
+		Double re;
 		if (Modifier.isStatic(resize.getModifiers())) {
 			re = (Double) resize.invoke(resize.getDeclaringClass(), file, index, cell);
 		} else {
@@ -107,7 +107,7 @@ public enum ImgProduce {
 	 * @return
 	 */
 	public static Method getResizeMethod(Field field) {
-		if(field==null){
+		if (field == null) {
 			throw new IllegalArgumentException("resize插入图片,字段不可为空");
 		}
 		String name = new StringBuilder().append("resize_").append(field.getName()).toString();

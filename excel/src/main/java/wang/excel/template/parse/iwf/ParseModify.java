@@ -1,13 +1,13 @@
 package wang.excel.template.parse.iwf;
 
-import wang.excel.template.parse.model.RecordInfo;
+import wang.excel.template.parse.model.TemplateCoordinate;
 
 ;
 
 /**
  * 模板解析时的自定义修改
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 public interface ParseModify {
@@ -19,5 +19,5 @@ public interface ParseModify {
 	 * @param record 坐标信息
 	 * @throws 如果有异常信息,请直接抛出,并进行错误说明
 	 */
-	void modify(Object target, String name, Object val, RecordInfo record) throws Exception;
+	void modify(Object target, String name, Object val, TemplateCoordinate record) throws Exception;
 }

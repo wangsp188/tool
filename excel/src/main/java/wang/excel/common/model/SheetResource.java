@@ -1,6 +1,7 @@
 package wang.excel.common.model;
 
 import org.apache.commons.lang.StringUtils;
+
 import wang.excel.common.iwf.ParseResource;
 
 public class SheetResource implements ParseResource {
@@ -15,14 +16,13 @@ public class SheetResource implements ParseResource {
 	 */
 	private WorkbookResource workbookResource;
 
-
 	public SheetResource(String sheetName) {
 		this.sheetName = sheetName;
 	}
 
 	@Override
-	public String desc() {
-		String s = workbookResource == null ? "" : workbookResource.desc();
+	public String toString() {
+		String s = workbookResource == null ? "" : workbookResource.toString();
 		if (sheetName != null) {
 			if (StringUtils.isNotEmpty(s)) {
 				s += "的";
@@ -32,7 +32,6 @@ public class SheetResource implements ParseResource {
 		return s;
 	}
 
-
 	public String getSheetName() {
 		return sheetName;
 	}
@@ -40,7 +39,6 @@ public class SheetResource implements ParseResource {
 	public void setSheetName(String sheetName) {
 		this.sheetName = sheetName;
 	}
-
 
 	public WorkbookResource getWorkbookResource() {
 		return workbookResource;

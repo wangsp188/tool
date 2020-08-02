@@ -1,22 +1,17 @@
 package wang.excel.normal.produce.iwf.impl;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import wang.excel.common.model.BaseProduceParam;
+import wang.excel.common.model.BaseListProduceParam;
 import wang.excel.normal.produce.iwf.O2CellMiddleware;
-
 
 public abstract class AbstractO2CellMiddleware<T> implements O2CellMiddleware<T> {
 
 	/**
 	 * key-解析参数映射
 	 */
-	protected Map<String, BaseProduceParam> params;
-
-	/**
-	 * key-标题映射
-	 */
-	protected Map<String, String> titles;
+	protected final Map<String, BaseListProduceParam> params = new HashMap<>();
 
 	/**
 	 * key数组
@@ -24,19 +19,14 @@ public abstract class AbstractO2CellMiddleware<T> implements O2CellMiddleware<T>
 	protected String[] keys;
 
 	@Override
-	public BaseProduceParam param(String key) {
-		if (params != null && params.containsKey(key)) {
-			return params.get(key);
-		}
-		return null;
+	public BaseListProduceParam param(String key) {
+		return params.get(key);
 	}
 
 	@Override
 	public String title(String key) {
-		if (titles != null && titles.containsKey(key)) {
-			return titles.get(key);
-		}
-		return key;
+		BaseListProduceParam param = param(key);
+		return param == null || param.getName() == null ? key : param.getName();
 	}
 
 	@Override
@@ -44,23 +34,12 @@ public abstract class AbstractO2CellMiddleware<T> implements O2CellMiddleware<T>
 		return keys;
 	}
 
-	public Map<String, BaseProduceParam> getParams() {
+	public Map<String, BaseListProduceParam> getParams() {
 		return params;
-	}
-
-	public void setParams(Map<String, BaseProduceParam> params) {
-		this.params = params;
 	}
 
 	public void setKeys(String[] keys) {
 		this.keys = keys;
 	}
 
-	public Map<String, String> getTitles() {
-		return titles;
-	}
-
-	public void setTitles(Map<String, String> titles) {
-		this.titles = titles;
-	}
 }

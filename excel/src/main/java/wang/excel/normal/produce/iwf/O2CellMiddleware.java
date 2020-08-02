@@ -1,7 +1,6 @@
 package wang.excel.normal.produce.iwf;
 
-
-import wang.excel.common.model.BaseProduceParam;
+import wang.excel.common.model.BaseListProduceParam;
 import wang.excel.common.model.CellData;
 
 /**
@@ -22,7 +21,7 @@ public interface O2CellMiddleware<T> {
 	 * @param key key
 	 * @return
 	 */
-	BaseProduceParam param(String key);
+	BaseListProduceParam param(String key);
 
 	/**
 	 * 根据key获取当前列标题

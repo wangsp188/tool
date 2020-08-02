@@ -1,10 +1,10 @@
 package wang.process.core;
 
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @Description 批量执行simpleprocess
@@ -37,12 +37,9 @@ public class CombineProcess extends BaseCtx {
 		super(name);
 	}
 
-
-
-
-
 	/**
 	 * 共享回滚的对某集合执行批量操作
+	 * 
 	 * @param ls
 	 * @param task
 	 * @param <T>
@@ -70,8 +67,8 @@ public class CombineProcess extends BaseCtx {
 	}
 
 	/**
-	 * 集合批量执行某种任务的process制作器
-	 * 默认全同步方式执行(大家数据不交叉,没互相传递)
+	 * 集合批量执行某种任务的process制作器 默认全同步方式执行(大家数据不交叉,没互相传递)
+	 * 
 	 * @param ls
 	 * @param task
 	 * @param <T>
@@ -96,31 +93,30 @@ public class CombineProcess extends BaseCtx {
 		return combineProcess;
 	}
 
-
 	/**
 	 * 获取参与的process
+	 * 
 	 * @return
 	 */
 	public List<SimpleProcess> getJoinProcesses() {
 		return (List<SimpleProcess>) get(key_joinProcesses);
 	}
 
-
 	/**
 	 * 连接
+	 * 
 	 * @param process
 	 * @return
 	 */
-	public CombineProcess join(SimpleProcess process){
+	public CombineProcess join(SimpleProcess process) {
 		Assert.notNull(process, "simpleProcess 不可为空!");
 		getJoinProcesses().add(process);
 		return this;
 	}
 
-
-
 	/**
 	 * 获取执行模式
+	 * 
 	 * @return
 	 */
 	public CombineExecutor.CombineModel getRunModel() {
@@ -129,23 +125,18 @@ public class CombineProcess extends BaseCtx {
 
 	/**
 	 * 设置执行模式
+	 * 
 	 * @return
 	 */
 	public CombineProcess setRunModel(CombineExecutor.CombineModel model) {
-		Assert.notNull(model,"执行策略不可为空");
-		put(key_runModel,model);
+		Assert.notNull(model, "执行策略不可为空");
+		put(key_runModel, model);
 		return this;
 	}
-
-
-
 
 	@Override
 	public void execute() {
 		CombineExecutor.getInstance().start(this);
 	}
-
-
-
 
 }

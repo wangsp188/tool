@@ -1,7 +1,6 @@
 package wang.excel.normal.produce.iwf.impl;
 
-
-import wang.excel.common.model.BaseProduceParam;
+import wang.excel.common.model.BaseListProduceParam;
 import wang.excel.common.model.CellData;
 import wang.excel.normal.produce.iwf.*;
 
@@ -15,7 +14,7 @@ public class WrapO2CellMiddleware<T> implements O2CellMiddleware<T> {
 	/**
 	 * 被修饰的接口
 	 */
-	private O2CellMiddleware<T> wraped;
+	private O2CellMiddleware<T> delegate;
 
 	/**
 	 * 代理key方法
@@ -49,31 +48,31 @@ public class WrapO2CellMiddleware<T> implements O2CellMiddleware<T> {
 
 	@Override
 	public String[] keys() {
-		return keys == null ? wraped.keys() : keys.keys(wraped);
+		return keys == null ? delegate.keys() : keys.keys(delegate);
 	}
 
 	@Override
-	public BaseProduceParam param(String key) {
-		return param == null ? wraped.param(key) : param.param(wraped, key);
+	public BaseListProduceParam param(String key) {
+		return param == null ? delegate.param(key) : param.param(delegate, key);
 	}
 
 	@Override
 	public String title(String key) {
-		return title == null ? wraped.title(key) : title.title(wraped, key);
+		return title == null ? delegate.title(key) : title.title(delegate, key);
 	}
 
 	@Override
 	public CellData data(T t, String key, Integer index) {
-		return data == null ? wraped.data(t, key,index) : data.data(wraped, t, key,index);
+		return data == null ? delegate.data(t, key, index) : data.data(delegate, t, key, index);
 	}
 
-	public O2CellMiddleware<T> getWraped() {
-		return wraped;
+	public O2CellMiddleware<T> getDelegate() {
+		return delegate;
 	}
 
-	public void setWraped(O2CellMiddleware<T> wraped) {
+	public void setDelegate(O2CellMiddleware<T> delegate) {
 
-		this.wraped = wraped;
+		this.delegate = delegate;
 	}
 
 	public WrapO2CellKeys<T> getKeys() {

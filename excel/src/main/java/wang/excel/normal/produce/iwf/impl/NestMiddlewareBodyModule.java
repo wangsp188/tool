@@ -1,11 +1,13 @@
 package wang.excel.normal.produce.iwf.impl;
 
-import wang.excel.common.model.BaseProduceParam;
-import wang.excel.common.model.CellData;
-import wang.excel.normal.produce.iwf.O2CellMiddleware;
-import wang.excel.common.iwf.NestExcel;
-import wang.excel.normal.produce.iwf.CellPostProcessor;
-import wang.util.ReflectUtil;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -20,17 +22,16 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import wang.excel.common.iwf.NestExcel;
+import wang.excel.common.model.BaseListProduceParam;
+import wang.excel.common.model.CellData;
+import wang.excel.normal.produce.iwf.CellPostProcessor;
+import wang.excel.normal.produce.iwf.O2CellMiddleware;
+import wang.util.ReflectUtil;
 
 public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
-
 	private static Logger log = LoggerFactory.getLogger(NestMiddlewareBodyModule.class);
+
 	/**
 	 * 保存
 	 */
@@ -60,7 +61,7 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 			for (String nest : nests) {
 				Field field = ReflectionUtils.findField(type, nest);
 				Assert.notNull(field, type + "未找到属性" + nest);
-				Class nestType ;
+				Class nestType;
 				if (List.class.isAssignableFrom(field.getType())) {
 					Class[] types = ReflectUtil.getFieldActualType(field);
 					if (ArrayUtils.isEmpty(types)) {
@@ -89,14 +90,14 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 			for (PropertyDescriptor descriptor : descriptors) {
 				String nest = descriptor.getName();
 				Field field = ReflectionUtils.findField(type, nest);
-				if (field != null ) {
+				if (field != null) {
 					// 获取注解
 					NestExcel wc = field.getAnnotation(NestExcel.class);
-					if(wc==null){
+					if (wc == null) {
 						continue;
 					}
 					Class<?> nestType = field.getType();
-					if(List.class.isAssignableFrom(nestType)){
+					if (List.class.isAssignableFrom(nestType)) {
 						Class[] types = ReflectUtil.getFieldActualType(field);
 						// 去反省
 						if (ArrayUtils.isEmpty(types)) {
@@ -104,7 +105,7 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 						}
 						nestType = types[0];
 					}
-					String title=wc.name();
+					String title = wc.name();
 					O2CellMiddleware one = new Bean2CellMiddleware(nestType, null, null);
 					if (ArrayUtils.isEmpty(one.keys())) {
 						continue;
@@ -128,23 +129,22 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 	}
 
 	@Override
-	public void body(Sheet sheet) {
+	public void sheet(Sheet sheet) {
 		// 实际上并没有子
 		if (ArrayUtils.isEmpty(nestKeys)) {
-			super.body(sheet);
+			super.sheet(sheet);
 		} else {
 			Assert.notNull(middleware, "数据转换中间件不可为空");
 			Assert.notNull(swap, "单元格赋值接口不可为空");
 			Workbook wb = sheet.getWorkbook();
-			if(needHead){
+			if (needHead) {
 				// 先搞头
 				title(sheet, wb);
 			}
 
-
 			// 在搞身子
 			// 执行的基础条件,有数据,有转换,有赋值
-			if (!CollectionUtils.isEmpty(datas)) {
+			if (!CollectionUtils.isEmpty(data)) {
 				String[] keys = middleware.keys();
 				// 主表高度
 				short maxHeight = processMaxHeight();
@@ -152,10 +152,10 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 				maxHeight *= 20 * 2.5;
 				int num = sheet.getLastRowNum();
 				Row row;
-				for (int i = 0; i < datas.size(); i++) {
+				for (int i = 0; i < data.size(); i++) {
 					row = sheet.createRow(++num);
 					row.setHeight(maxHeight);
-					T t = datas.get(i);
+					T t = data.get(i);
 					// 先计算嵌套表的数量
 					int count = count(t, nestKeys);
 					// 先做主表
@@ -163,14 +163,13 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 						main(sheet, wb, row, i, t, count);
 					}
 
-
 					// 在做嵌套表
 					for (int y = 0; y < count; y++) {
 						if (y > 0) {
 							row = sheet.createRow(++num);
 							row.setHeight(maxHeight);
 						}
-						writeNest(wb,sheet, keys, row, t, y,count);
+						writeNest(wb, sheet, keys, row, t, y, count);
 
 					}
 
@@ -191,7 +190,7 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 		short maxHeight = 10;
 		if (ArrayUtils.isNotEmpty(keys)) {
 			for (String key : keys) {
-				BaseProduceParam bp = middleware.param(key);
+				BaseListProduceParam bp = middleware.param(key);
 				if (bp != null) {
 					short height = bp.getHeight();
 					maxHeight = (short) Math.max(height, maxHeight);
@@ -208,7 +207,7 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 				continue;
 			}
 			for (String nestKey : nestKeys) {
-				BaseProduceParam bp = oneNest.param(nestKey);
+				BaseListProduceParam bp = oneNest.param(nestKey);
 				if (bp != null) {
 					short height = bp.getHeight();
 					maxHeight = (short) Math.max(height, maxHeight);
@@ -228,34 +227,34 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 	 * @param t    主实体
 	 * @param y    遍历的是第几个子实体
 	 */
-	private void writeNest(Workbook wb, Sheet sheet,String[] keys, Row row, T t, int y,int count) {
+	private void writeNest(Workbook wb, Sheet sheet, String[] keys, Row row, T t, int y, int count) {
 		int col = ArrayUtils.isEmpty(keys) ? 0 : keys.length;
 
 		for (String nestKey : nestKeys) {
 			O2CellMiddleware cellMiddleware = cellMiddlewareIMap.get(nestKey);
 			try {
 				Object nestObj = PropertyUtils.getProperty(t, nestKey);
-				//空对象直接上
-				 if(nestObj instanceof List){
-					//集合嵌套
+				// 空对象直接上
+				if (nestObj instanceof List) {
+					// 集合嵌套
 					List nestList = (List) nestObj;
 					if (nestList.size() > y) {
-						nest(cellMiddleware, wb, row, col, nestList.get(y),y);
+						nest(cellMiddleware, wb, row, col, nestList.get(y), y);
 					}
-				}else if (y==0 && nestObj!=null){
-					//普通嵌套,只写第一个后面的全置空
-					 nest(cellMiddleware, wb, row, col, nestObj,y);
-					 //合并单元格
-					 if(count>1){
-					 	//遍历自己有的列,合并单元格
-						 for (int i = 0; i < cellMiddleware.keys().length; i++) {
-							 // 合并单元格
-							 int startRow = row.getRowNum();
-							 CellRangeAddress region = new CellRangeAddress(startRow, startRow + count - 1, col+i, col+i);
-							 sheet.addMergedRegion(region);
-						 }
+				} else if (y == 0 && nestObj != null) {
+					// 普通嵌套,只写第一个后面的全置空
+					nest(cellMiddleware, wb, row, col, nestObj, y);
+					// 合并单元格
+					if (count > 1) {
+						// 遍历自己有的列,合并单元格
+						for (int i = 0; i < cellMiddleware.keys().length; i++) {
+							// 合并单元格
+							int startRow = row.getRowNum();
+							CellRangeAddress region = new CellRangeAddress(startRow, startRow + count - 1, col + i, col + i);
+							sheet.addMergedRegion(region);
+						}
 
-					 }
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -264,7 +263,6 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 			col += cellMiddleware.keys().length;
 		}
 	}
-
 
 	/**
 	 * 创建主表信息
@@ -292,7 +290,6 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 					sheet.addMergedRegion(region);
 				}
 
-
 				// 单元格操作
 				if (!CollectionUtils.isEmpty(cellPostProcessors)) {
 					for (CellPostProcessor c : cellPostProcessors) {
@@ -300,7 +297,7 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 					}
 				}
 				// 赋值
-				CellData data = middleware.data(t, key,i);
+				CellData data = middleware.data(t, key, i);
 				if (data == null && noneStyle != null) {
 					cell.setCellStyle(noneStyle.style(wb));
 				}
@@ -316,11 +313,11 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 	 * 创建付信息
 	 * 
 	 * @param nestMiddleware 子中间件
-	 * @param wb            表
-	 * @param row           行
-	 * @param startCol      开始行
-	 * @param s             嵌套对象
-	 * @param index        	第几个嵌套对象
+	 * @param wb             表
+	 * @param row            行
+	 * @param startCol       开始行
+	 * @param s              嵌套对象
+	 * @param index          第几个嵌套对象
 	 * @return
 	 */
 	private <S> void nest(O2CellMiddleware<S> nestMiddleware, Workbook wb, Row row, int startCol, S s, Integer index) {
@@ -338,7 +335,7 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 					}
 				}
 				// 赋值
-				CellData data = nestMiddleware.data(s, key,index);
+				CellData data = nestMiddleware.data(s, key, index);
 				if (data == null && noneStyle != null) {
 					cell.setCellStyle(noneStyle.style(wb));
 				}
@@ -365,7 +362,7 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 				Object one = PropertyUtils.getProperty(t, nest);
 				if (one instanceof List) {
 					max = Math.max(max, (Integer) method.invoke(one));
-				}else{
+				} else {
 					max = Math.max(1, max);
 				}
 			}
@@ -405,8 +402,8 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 				// 合并单元格
 				CellRangeAddress region = new CellRangeAddress(num + 1, num + 2, i, i);
 				sheet.addMergedRegion(region);
-				//设置宽度
-				BaseProduceParam ep = middleware.param(keys[i]);
+				// 设置宽度
+				BaseListProduceParam ep = middleware.param(keys[i]);
 				if (ep != null) {
 					// 单元格宽度
 					sheet.setColumnWidth(i, (int) (256 * ep.getWidth()));
@@ -444,13 +441,12 @@ public class NestMiddlewareBodyModule<T> extends O2CellMiddlewareBodyModule<T> {
 				if (headCellStyle != null) {
 					cell.setCellStyle(headCellStyle.style(wb));
 				}
-				//设置宽度
-				BaseProduceParam ep = oneNest.param(nestKeys[i]);
+				// 设置宽度
+				BaseListProduceParam ep = oneNest.param(nestKeys[i]);
 				if (ep != null) {
 					// 单元格宽度
 					sheet.setColumnWidth(col, (int) (256 * ep.getWidth()));
 				}
-
 
 			}
 

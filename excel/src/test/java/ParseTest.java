@@ -1,62 +1,60 @@
-import wang.excel.ExcelParseUtil;
-import wang.excel.common.model.ParseResult;
-import wang.excel.normal.parse.iwf.Sheet2ParseParam;
-import wang.excel.normal.parse.model.ParseParam;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import javax.swing.filechooser.FileSystemView;
+
 import org.apache.poi.ss.usermodel.Sheet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.swing.filechooser.FileSystemView;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import wang.excel.ExcelParseUtil;
+import wang.excel.common.model.ParseResult;
+import wang.excel.normal.parse.iwf.Sheet2ParseParam;
+import wang.excel.normal.parse.model.ParseParam;
 
 public class ParseTest {
 
-    Class type ;
+	Class type;
 
-    //文件根
-    String root ;
-    String name;
+	// 文件根
+	String root;
+	String name;
 
+	// 解析解果 每一个单元测试都会给他赋值
+	ParseResult result;
 
-    //解析解果  每一个单元测试都会给他赋值
-    ParseResult result;
+	@Before
+	public void before() {
+		FileSystemView fsv = FileSystemView.getFileSystemView();
+		// 桌面
+		File home = fsv.getHomeDirectory();
+		root = home.getAbsolutePath() + "/import/";
+	}
 
+	@After
+	public void after() {
+		System.out.println("此次解析结果是:-------------------------");
+		System.out.println(result);
+	}
 
-
-
-    @Before
-    public void before() {
-        FileSystemView fsv = FileSystemView.getFileSystemView();
-        //桌面
-        File home = fsv.getHomeDirectory();
-        root = home.getAbsolutePath() + "/import/";
-    }
-
-    @After
-    public void after(){
-        System.out.println("此次解析结果是:-------------------------");
-        System.out.println(result);
-    }
-
-    /**
-     * 常用属性演示
-     * @throws IOException
-     */
-    @Test
-    public void t1() throws IOException {
+	/**
+	 * 常用属性演示
+	 * 
+	 * @throws IOException
+	 */
+	@Test
+	public void t1() throws IOException {
 //        Workbook-----整个工作簿  excel文件 --就是个文件
 //        ,Sheet-----其中的一个sheet页 ---根据sheet下表获取
 //        ,Row-------一行 ------根据行下标获取
 //        ,Cell;-----一个单元格 -----根据行列下标获取
 
+		name = "24.xls";
 
-        name="14.xls";
-
-        type = Person.class;
-        final ParseParam common = ParseParam.common(type);
+		type = Person.class;
+		final ParseParam common = ParseParam.common(type);
 //        ParseParam<T> p = new ParseParam<T>();
 //        // 类啊
 //        p.setNestType(cz);
@@ -78,38 +76,31 @@ public class ParseTest {
 //        // 最大9999个实体
 //        p.setMaxParse(9999);
 
-        Sheet2ParseParam sheet2ParseParam = new Sheet2ParseParam() {
-            @Override
-            public ParseParam parseParam(Sheet sheet) {
+		Sheet2ParseParam sheet2ParseParam = new Sheet2ParseParam() {
+			@Override
+			public ParseParam parseParam(Sheet sheet) {
 //                //获取sheet下标
 //                int index = sheet.getWorkbook().getSheetIndex(sheet);
 //                //仅读取第一个sheet
 //                if (index == 0) {
 //                    return common;
 //                }
+//                common.setMaxParse(1);
 //                return common;
-                return ParseParam.common(type);
-            }
-        };
+				return ParseParam.common(type);
+			}
+		};
 
-        result = ExcelParseUtil.excelParse(new FileInputStream(root+name), sheet2ParseParam);
-    }
+		result = ExcelParseUtil.excelParse(new FileInputStream(root + name), sheet2ParseParam);
+	}
 
-
-
-
-
-
-
-
-
-
-    /**
-     * 自定义解析逻辑
-     * @throws IOException
-     */
-    @Test
-    public void t2() throws IOException {
+	/**
+	 * 自定义解析逻辑
+	 * 
+	 * @throws IOException
+	 */
+	@Test
+	public void t2() throws IOException {
 //        单表
 //        name="6.xls";
 //        type = Person.class;
@@ -124,10 +115,9 @@ public class ParseTest {
 //            }
 //        });
 
-
-        name = "1.xls";
-        type = PersonHouse.class;
-        final  ParseParam common = ParseParam.commonNest(type);
+		name = "1.xls";
+		type = PersonHouse.class;
+		final ParseParam common = ParseParam.commonNest(type);
 
 //
 //
@@ -138,56 +128,51 @@ public class ParseTest {
 //            }
 //        });
 
+		Sheet2ParseParam sheet2ParseParam = new Sheet2ParseParam() {
+			@Override
+			public ParseParam parseParam(Sheet sheet) {
+				// 获取sheet下标
+				int index = sheet.getWorkbook().getSheetIndex(sheet);
+				// 仅读取第一个sheet
+				if (index == 0) {
+					return common;
+				}
+				return null;
+			}
+		};
+		result = ExcelParseUtil.excelParse(new FileInputStream(root + name), sheet2ParseParam);
+	}
 
-        Sheet2ParseParam sheet2ParseParam = new Sheet2ParseParam() {
-            @Override
-            public ParseParam parseParam(Sheet sheet) {
-                //获取sheet下标
-                int index = sheet.getWorkbook().getSheetIndex(sheet);
-                //仅读取第一个sheet
-                if (index == 0) {
-                    return common;
-                }
-                return null;
-            }
-        };
-        result = ExcelParseUtil.excelParse(new FileInputStream(root+name), sheet2ParseParam);
-    }
+	/**
+	 * 不同sheet不同逻辑
+	 * 
+	 * @throws IOException
+	 */
+	@Test
+	public void t3() throws IOException {
+		name = "6.xls";
+		type = Person.class;
+		final ParseParam person = ParseParam.common(type);
+		final ParseParam house = ParseParam.common(House.class);
 
+		Sheet2ParseParam sheet2ParseParam = new Sheet2ParseParam() {
+			@Override
+			public ParseParam parseParam(Sheet sheet) {
+				// 获取sheet下标
+				int index = sheet.getWorkbook().getSheetIndex(sheet);
+				// 第一个人
+				if (index == 0) {
+					return person;
+				}
+				// 第二个房子
+				if (index == 1) {
+					return house;
+				}
+				return null;
+			}
+		};
 
-
-    /**
-     * 不同sheet不同逻辑
-     * @throws IOException
-     */
-    @Test
-    public void t3() throws IOException {
-        name="6.xls";
-        type = Person.class;
-        final ParseParam person = ParseParam.common(type);
-        final ParseParam house = ParseParam.common(House.class);
-
-        Sheet2ParseParam sheet2ParseParam = new Sheet2ParseParam() {
-            @Override
-            public ParseParam parseParam(Sheet sheet) {
-                //获取sheet下标
-                int index = sheet.getWorkbook().getSheetIndex(sheet);
-                //第一个人
-                if (index == 0) {
-                    return person;
-                }
-                //第二个房子
-                if (index == 1) {
-                    return house;
-                }
-                return null;
-            }
-        };
-
-        result = ExcelParseUtil.excelParse(new FileInputStream(root+name), sheet2ParseParam);
-    }
-
-
-
+		result = ExcelParseUtil.excelParse(new FileInputStream(root + name), sheet2ParseParam);
+	}
 
 }

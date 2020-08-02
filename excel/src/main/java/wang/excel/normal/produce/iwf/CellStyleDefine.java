@@ -11,7 +11,7 @@ public interface CellStyleDefine {
 	/**
 	 * 样式接口
 	 * 
-	 * @param wb
+	 * @param workbook
 	 * @return
 	 */
 	CellStyle style(Workbook workbook);

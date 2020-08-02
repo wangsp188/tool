@@ -10,10 +10,14 @@ public class ParseSuccess<T> extends ParseOneResult<T> {
 
 	public ParseSuccess(String location, T entity) {
 		super();
-		this.resource = ()->location;
+		this.resource = new ParseResource() {
+			@Override
+			public String toString() {
+				return location;
+			}
+		};
 		this.entity = entity;
 	}
-
 
 	public ParseSuccess() {
 		super();
@@ -35,15 +39,13 @@ public class ParseSuccess<T> extends ParseOneResult<T> {
 		this.resource = resource;
 	}
 
-
-
 	@Override
 	public boolean isSuccess() {
 		return true;
 	}
 
 	@Override
-	public String detail() {
+	public String toString() {
 		return "解析成功！" + entity;
 	}
 

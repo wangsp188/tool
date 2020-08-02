@@ -1,17 +1,18 @@
 package wang.excel.normal.produce.iwf.impl;
 
-import wang.excel.normal.produce.iwf.Foot;
+import java.util.Map;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import java.util.Map;
+import wang.excel.normal.produce.iwf.SheetModule;
 
 /**
  * 公式模块
  */
-public class FormulaFootModule extends SemanticModule implements Foot {
+public class FormulaFootModule extends SheetModule.Foot {
 
 	/**
 	 * 列-公式
@@ -19,7 +20,7 @@ public class FormulaFootModule extends SemanticModule implements Foot {
 	private Map<Integer, String> formulas;
 
 	@Override
-	public void foot(Sheet sheet) {
+	public void sheet(Sheet sheet) {
 		// 公式自动计算
 		sheet.setForceFormulaRecalculation(true);
 		int rownum = 0;

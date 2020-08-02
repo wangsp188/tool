@@ -1,10 +1,9 @@
 package wang.excel.common.model;
 
-import wang.excel.common.iwf.DicErr;
-import wang.excel.common.iwf.ImgStore;
-
 import java.util.Map;
 
+import wang.excel.common.iwf.DicErr;
+import wang.excel.common.iwf.ImgStoreStrategy;
 
 /**
  * 表格参数超类
@@ -24,12 +23,15 @@ public class ExcelParam {
 	/**
 	 * 字典没有匹配上时的操作
 	 */
-	protected DicErr dicErr = DicErr.restore;
+	protected DicErr dicErr;
 
 	/**
 	 * 图形保存
 	 */
-	protected ImgStore imgStoreStrategy = null;
+	protected ImgStoreStrategy imgStoreStrategy;
+
+	public ExcelParam() {
+	}
 
 	public Map<String, String> getDicMap() {
 		return dicMap;
@@ -55,21 +57,16 @@ public class ExcelParam {
 		this.dicErr = dicErr;
 	}
 
-	public ImgStore getImgStoreStrategy() {
+	public ImgStoreStrategy getImgStoreStrategy() {
 		return imgStoreStrategy;
 	}
 
-	public void setImgStoreStrategy(ImgStore imgStoreStrategy) {
+	public void setImgStoreStrategy(ImgStoreStrategy imgStoreStrategy) {
 		this.imgStoreStrategy = imgStoreStrategy;
 	}
 
 	@Override
 	public String toString() {
-		return "ExcelParam{" +
-				"dicMap=" + dicMap +
-				", multiChoice=" + multiChoice +
-				", dicErr=" + dicErr +
-				", imgStoreStrategy=" + imgStoreStrategy +
-				'}';
+		return "ExcelParam{" + "dicMap=" + dicMap + ", multiChoice=" + multiChoice + ", dicErr=" + dicErr + ", imgStoreStrategy=" + imgStoreStrategy + '}';
 	}
 }

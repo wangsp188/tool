@@ -3,15 +3,14 @@ package wang.excel.common.model;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 解析服务通用父类
- * 主要用于错误数量记录
+ * 解析服务通用父类 主要用于错误数量记录
  */
 public class ErrorCounter {
 
 	/**
 	 * 最大错误消息数量
 	 */
-	private int maxError = 9999;
+	private int maxError = 10000;
 
 	/**
 	 * 当前错误量
@@ -25,21 +24,11 @@ public class ErrorCounter {
 		setMaxError(maxError);
 	}
 
-
-
-	public void setMaxError(int maxError) {
-		if (maxError < 1) {
-			throw new IllegalArgumentException("不合规参数,最大错误数不可<1");
-		}
-		this.maxError = maxError;
-	}
-
-
 	/**
 	 * 发生错误,如果量太多,就会抛出异常
 	 */
-	public  void occurError(int num) throws OutErrorException {
-		if(num<=0){
+	public void occurError(int num) throws OutErrorException {
+		if (num <= 0) {
 			return;
 		}
 		int expect = 0;
@@ -54,7 +43,7 @@ public class ErrorCounter {
 	/**
 	 * 还原计数器
 	 */
-	public void restore() {
+	public void revert() {
 		currentError.set(0);
 	}
 
@@ -63,16 +52,23 @@ public class ErrorCounter {
 	 *
 	 * @return
 	 */
-	public  boolean isOver() {
+	public boolean isOver() {
 		return currentError.get() >= maxError;
 	}
 
-	public int getCurrentError(){
+	public int getCurrentError() {
 		return currentError.get();
 	}
 
 	public int getMaxError() {
 		return maxError;
+	}
+
+	public void setMaxError(int maxError) {
+		if (maxError < 1) {
+			throw new IllegalArgumentException("不合规参数,最大错误数不可<1");
+		}
+		this.maxError = maxError;
 	}
 
 	/**

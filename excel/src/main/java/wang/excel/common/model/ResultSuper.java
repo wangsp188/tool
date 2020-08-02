@@ -3,7 +3,7 @@ package wang.excel.common.model;
 /**
  * 结果超类
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 public class ResultSuper {
@@ -14,10 +14,9 @@ public class ResultSuper {
 		super();
 	}
 
-
 	public ResultSuper(String errMsg) {
 		super();
-		if(errMsg==null){
+		if (errMsg == null) {
 			errMsg = "";
 		}
 		this.errMsg = errMsg;
@@ -25,12 +24,12 @@ public class ResultSuper {
 
 	/**
 	 * 是否完成的标准就是错误信息
+	 * 
 	 * @return
 	 */
 	public boolean isComplete() {
-		return errMsg==null;
+		return errMsg == null;
 	}
-
 
 	public String getErrMsg() {
 		return errMsg;
@@ -40,13 +39,8 @@ public class ResultSuper {
 		this.errMsg = errMsg;
 	}
 
-
-
-
 	@Override
 	public String toString() {
-		return "ResultSuper{" +
-				"errMsg='" + errMsg + '\'' +
-				'}';
+		return errMsg == null ? "true" : errMsg;
 	}
 }

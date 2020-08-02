@@ -1,13 +1,13 @@
 package wang.process.core;
 
-import org.springframework.util.Assert;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.springframework.util.Assert;
 
 /**
  * @Description 普通任务流
@@ -79,33 +79,10 @@ public class SimpleProcess extends BaseCtx {
 	 */
 	private static final String key_result = "SimpleProcess:result";
 
-
-
 	/**
 	 * boolean 是否需要异步执行 默认同步
 	 */
 	private static final String key_needAsync = "SimpleProcess:needAsync";
-
-	/**
-	 * 获取起始参数
-	 *
-	 * @param <T>
-	 * @return
-	 */
-	public <T> T getParam() {
-		return (T) get(key_param);
-	}
-
-	/**
-	 * 设置起始参数
-	 *
-	 * @param startParam
-	 */
-	public BaseCtx setParam(Object startParam) {
-		doNotUsing();
-		put(key_param, startParam);
-		return this;
-	}
 	/**
 	 * boolean 是否超时
 	 */
@@ -129,7 +106,6 @@ public class SimpleProcess extends BaseCtx {
 		put(key_steps, new ArrayList<>());
 		put(key_exceptionHandlers, new ArrayList<>());
 	}
-
 	public SimpleProcess() {
 		super();
 	}
@@ -138,6 +114,26 @@ public class SimpleProcess extends BaseCtx {
 		super(name);
 	}
 
+	/**
+	 * 获取起始参数
+	 *
+	 * @param <T>
+	 * @return
+	 */
+	public <T> T getParam() {
+		return (T) get(key_param);
+	}
+
+	/**
+	 * 设置起始参数
+	 *
+	 * @param startParam
+	 */
+	public BaseCtx setParam(Object startParam) {
+		doNotUsing();
+		put(key_param, startParam);
+		return this;
+	}
 
 	/**
 	 * 增加当前步数并返回
@@ -244,20 +240,6 @@ public class SimpleProcess extends BaseCtx {
 	}
 
 	/**
-	 * 设置超时时间
-	 *
-	 * @param timeout
-	 */
-	public SimpleProcess setTimeout(int timeout) {
-		doNotUsing();
-		if (timeout <= 0) {
-			throw new IllegalArgumentException("为了尽量防止死锁 timeout 不可<=0,默认2分钟");
-		}
-		put(key_timeout, timeout);
-		return this;
-	}
-
-	/**
 	 * 失败的步骤是否回滚
 	 *
 	 * @return
@@ -306,8 +288,8 @@ public class SimpleProcess extends BaseCtx {
 	}
 
 	/**
-	 * 是否中断
-	 * 执行完后才知道
+	 * 是否中断 执行完后才知道
+	 *
 	 * @return
 	 */
 	public boolean isInterrupt() {
@@ -315,8 +297,8 @@ public class SimpleProcess extends BaseCtx {
 	}
 
 	/**
-	 * 是否发生回滚
-	 * 执行完后才知道
+	 * 是否发生回滚 执行完后才知道
+	 *
 	 * @return
 	 */
 	public boolean isRollback() {
@@ -324,17 +306,8 @@ public class SimpleProcess extends BaseCtx {
 	}
 
 	/**
-	 * 是否超时
-	 * 执行完后才知道
-	 * @return
-	 */
-	public boolean isTimeout(){
-		return Status.timeout.is(getStatus());
-	}
-
-	/**
 	 * 设置回滚状态
-	 * 
+	 *
 	 * @param b
 	 */
 	void setRollback(boolean b) {
@@ -343,6 +316,29 @@ public class SimpleProcess extends BaseCtx {
 		} else {
 			off(Status.rollback);
 		}
+	}
+
+	/**
+	 * 是否超时 执行完后才知道
+	 * 
+	 * @return
+	 */
+	public boolean isTimeout() {
+		return Status.timeout.is(getStatus());
+	}
+
+	/**
+	 * 设置超时时间
+	 *
+	 * @param timeout
+	 */
+	public SimpleProcess setTimeout(int timeout) {
+		doNotUsing();
+		if (timeout <= 0) {
+			throw new IllegalArgumentException("为了尽量防止死锁 timeout 不可<=0,默认2分钟");
+		}
+		put(key_timeout, timeout);
+		return this;
 	}
 
 	/**
@@ -372,7 +368,7 @@ public class SimpleProcess extends BaseCtx {
 			setSteps(new ArrayList<>());
 		}
 		// 默认步骤名是步骤号
-		getSteps().add(new Step(getName() +"-"+ (getSteps().size() + 1), task));
+		getSteps().add(new Step(getName() + "-" + (getSteps().size() + 1), task));
 		return this;
 	}
 
@@ -497,7 +493,6 @@ public class SimpleProcess extends BaseCtx {
 		getCurrentStepInfo().setResult(result);
 	}
 
-
 	/**
 	 * 获取process的结果
 	 *
@@ -523,12 +518,12 @@ public class SimpleProcess extends BaseCtx {
 	}
 
 	/**
-	 * 是否成功
-	 * 执行结束+验证通过+没有回滚+没有中断
+	 * 是否成功 执行结束+验证通过+没有回滚+没有中断
+	 * 
 	 * @return
 	 */
 	public boolean isSuccess() {
-		return isEnd() && isValid() &&  !isRollback() && !isInterrupt();
+		return isEnd() && isValid() && !isRollback() && !isInterrupt();
 	}
 
 	/**
@@ -551,6 +546,5 @@ public class SimpleProcess extends BaseCtx {
 		put(key_needAsync, selfAsync);
 		return this;
 	}
-
 
 }

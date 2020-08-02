@@ -1,9 +1,5 @@
 package wang.util;
 
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -14,6 +10,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 不好专门分类的工具函数和常量
@@ -24,9 +22,9 @@ import java.util.regex.Pattern;
 @SuppressWarnings(value = { "rawtypes", "unchecked" })
 public class CommonUtil {
 
-
 	/**
 	 * 格式化数字
+	 * 
 	 * @param num
 	 * @param format
 	 * @return
@@ -93,7 +91,6 @@ public class CommonUtil {
 		return sBuilder.reverse().toString();
 	}
 
-
 	/**
 	 * 数组,集合,整数,字符串的转换 结果都是对象
 	 *
@@ -105,7 +102,7 @@ public class CommonUtil {
 	 */
 	public static Object listArray(Object resource, int arrayOrList, int intOrString, String split) {
 		Object result = null;
-		if (resource==null || StringUtils.isEmpty(resource.toString())) {// 空数据
+		if (resource == null || StringUtils.isEmpty(resource.toString())) {// 空数据
 			return empty(arrayOrList, intOrString);
 		} else if (resource instanceof String) {// 字符串
 			if (StringUtils.isEmpty(split)) {
@@ -121,44 +118,44 @@ public class CommonUtil {
 			String[] ps = x.split(split);
 
 			switch (arrayOrList) {
+			case 1:
+				switch (intOrString) {
 				case 1:
-					switch (intOrString) {
-						case 1:
-							Integer[] is = new Integer[ps.length];
-							for (int i = 0; i < ps.length; i++) {
-								is[i] = Integer.parseInt(ps[i]);
-							}
-							result = is;
-							break;
-						case 2:
-							result = ps;
-							break;
-						default:
-							throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+					Integer[] is = new Integer[ps.length];
+					for (int i = 0; i < ps.length; i++) {
+						is[i] = Integer.parseInt(ps[i]);
 					}
+					result = is;
 					break;
-				case 2:// 集合
-					switch (intOrString) {
-						case 1:
-							List<Integer> ls = new ArrayList<Integer>();
-							for (String s : ps) {
-								ls.add(Integer.parseInt(s));
-							}
-							result = ls;
-							break;
-						case 2:
-							List<String> lss = new ArrayList<String>();
-							for (String s : ps) {
-								lss.add(s);
-							}
-							result = lss;
-							break;
-						default:
-							throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
-					}
+				case 2:
+					result = ps;
 					break;
 				default:
 					throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+				}
+				break;
+			case 2:// 集合
+				switch (intOrString) {
+				case 1:
+					List<Integer> ls = new ArrayList<Integer>();
+					for (String s : ps) {
+						ls.add(Integer.parseInt(s));
+					}
+					result = ls;
+					break;
+				case 2:
+					List<String> lss = new ArrayList<String>();
+					for (String s : ps) {
+						lss.add(s);
+					}
+					result = lss;
+					break;
+				default:
+					throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+				}
+				break;
+			default:
+				throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
 			}
 		} else if (resource instanceof Collection) {// 集合
 			Collection x = (Collection) resource;
@@ -168,61 +165,61 @@ public class CommonUtil {
 			Iterator i = x.iterator();
 
 			switch (arrayOrList) {
+			case 1:
+				int index = 0;
+				switch (intOrString) {
 				case 1:
-					int index = 0;
-					switch (intOrString) {
-						case 1:
-							Integer[] is = new Integer[x.size()];
-							while (i.hasNext()) {
-								Object object = i.next();
-								if (object instanceof Integer) {
-									is[index++] = (Integer) object;
-								} else if (object instanceof String) {
-									is[index++] = Integer.parseInt((String) object);
-								}
-							}
-							result = is;
-							break;
-
-						case 2:
-							String[] iss = new String[x.size()];
-							while (i.hasNext()) {
-								Object object = i.next();
-								iss[index++] = object + "";
-							}
-							result = iss;
-							break;
-						default:
-							throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+					Integer[] is = new Integer[x.size()];
+					while (i.hasNext()) {
+						Object object = i.next();
+						if (object instanceof Integer) {
+							is[index++] = (Integer) object;
+						} else if (object instanceof String) {
+							is[index++] = Integer.parseInt((String) object);
+						}
 					}
+					result = is;
 					break;
 
-				case 2:// jihe
-					List ls = new ArrayList();
-					switch (intOrString) {
-						case 1:
-							while (i.hasNext()) {
-								Object object = i.next();
-								if (object instanceof Integer) {
-									ls.add(object);
-								} else if (object instanceof String) {
-									ls.add(Integer.parseInt(object + ""));
-								}
-							}
-							break;
-						case 2:
-							while (i.hasNext()) {
-								Object object = i.next();
-								ls.add(object + "");
-							}
-							break;
-						default:
-							throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+				case 2:
+					String[] iss = new String[x.size()];
+					while (i.hasNext()) {
+						Object object = i.next();
+						iss[index++] = object + "";
 					}
-					result = ls;
+					result = iss;
 					break;
 				default:
 					throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+				}
+				break;
+
+			case 2:// jihe
+				List ls = new ArrayList();
+				switch (intOrString) {
+				case 1:
+					while (i.hasNext()) {
+						Object object = i.next();
+						if (object instanceof Integer) {
+							ls.add(object);
+						} else if (object instanceof String) {
+							ls.add(Integer.parseInt(object + ""));
+						}
+					}
+					break;
+				case 2:
+					while (i.hasNext()) {
+						Object object = i.next();
+						ls.add(object + "");
+					}
+					break;
+				default:
+					throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+				}
+				result = ls;
+				break;
+			default:
+				throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
 			}
 		} else if (resource instanceof Object[] || resource instanceof int[]) {// 数组
 			String[] ps = null;
@@ -249,44 +246,44 @@ public class CommonUtil {
 			}
 
 			switch (arrayOrList) {
+			case 1:
+				switch (intOrString) {
 				case 1:
-					switch (intOrString) {
-						case 1:
-							Integer[] is = new Integer[ps.length];
-							for (int i = 0; i < ps.length; i++) {
-								is[i] = Integer.parseInt(ps[i]);
-							}
-							result = is;
-							break;
-						case 2:
-							result = ps;
-							break;
-						default:
-							throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+					Integer[] is = new Integer[ps.length];
+					for (int i = 0; i < ps.length; i++) {
+						is[i] = Integer.parseInt(ps[i]);
 					}
+					result = is;
 					break;
-				case 2:// 集合
-					switch (intOrString) {
-						case 1:
-							List<Integer> ls = new ArrayList<Integer>();
-							for (String s : ps) {
-								ls.add(Integer.parseInt(s));
-							}
-							result = ls;
-							break;
-						case 2:
-							List<String> lss = new ArrayList<String>();
-							for (String s : ps) {
-								lss.add(s);
-							}
-							result = lss;
-							break;
-						default:
-							throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
-					}
+				case 2:
+					result = ps;
 					break;
 				default:
 					throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+				}
+				break;
+			case 2:// 集合
+				switch (intOrString) {
+				case 1:
+					List<Integer> ls = new ArrayList<Integer>();
+					for (String s : ps) {
+						ls.add(Integer.parseInt(s));
+					}
+					result = ls;
+					break;
+				case 2:
+					List<String> lss = new ArrayList<String>();
+					for (String s : ps) {
+						lss.add(s);
+					}
+					result = lss;
+					break;
+				default:
+					throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+				}
+				break;
+			default:
+				throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
 			}
 		}
 
@@ -296,29 +293,26 @@ public class CommonUtil {
 	private static Object empty(int arrayOrList, int intOrString) {
 		Object obj = null;
 		switch (arrayOrList) {
-			case 1:// 数组
-				switch (intOrString) {
-					case 1:// 数字
-						obj = new Integer[] {};
-						break;
-					case 2:// 字符串
-						obj = new String[] {};
-						break;
-					default:
-						throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
-				}
+		case 1:// 数组
+			switch (intOrString) {
+			case 1:// 数字
+				obj = new Integer[] {};
 				break;
-
-			case 2:// 集合
-				obj = new ArrayList();
+			case 2:// 字符串
+				obj = new String[] {};
 				break;
 			default:
 				throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
+			}
+			break;
+
+		case 2:// 集合
+			obj = new ArrayList();
+			break;
+		default:
+			throw new RuntimeException(" arrayOrList, intOrString  is only for    1/2");
 		}
 		return obj;
 	}
-
-
-
 
 }

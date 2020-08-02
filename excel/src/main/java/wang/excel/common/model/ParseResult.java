@@ -1,15 +1,15 @@
 package wang.excel.common.model;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.util.Assert;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.util.Assert;
 
 /**
  * 文件解析结果
  * 
- * @author Administrator
+ * @author wangshaopeng
  */
 public class ParseResult<T> extends ResultSuper {
 
@@ -94,12 +94,12 @@ public class ParseResult<T> extends ResultSuper {
 	public String toString() {
 		if (!isSuccess()) {
 			if (!isComplete()) {
-				return "解析未正常结束！原因:"+errMsg;
+				return "解析未正常结束！原因:" + errMsg;
 			} else {
 				StringBuilder str = new StringBuilder();
 				for (ParseErr err : errs) {
 					if (err != null) {
-						str.append(err.detail());
+						str.append(err.toString());
 					}
 				}
 				return "解析错误！" + str;
@@ -112,7 +112,6 @@ public class ParseResult<T> extends ResultSuper {
 	public List<ParseSuccess<T>> getSuccesses() {
 		return successes;
 	}
-
 
 	public List<ParseErr> getErrs() {
 		return errs;

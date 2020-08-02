@@ -1,14 +1,12 @@
 package wang.excel.template.produce;
 
-import wang.excel.common.iwf.ProduceConvert;
-import wang.excel.common.iwf.SwapCell;
-import wang.excel.common.model.BeanProduceParam;
-import wang.excel.common.model.CellData;
-import wang.excel.common.iwf.impl.SimpleSwapCell;
-import wang.excel.common.util.ProduceUtil;
-import wang.excel.template.produce.iwf.ProduceModify;
-import wang.excel.template.produce.iwf.ProduceSkip;
-import wang.util.ReflectUtil;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.SetUtils;
@@ -17,20 +15,25 @@ import org.apache.poi.ss.usermodel.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import wang.excel.common.iwf.ProduceConvert;
+import wang.excel.common.iwf.SwapCell;
+import wang.excel.common.iwf.impl.SimpleSwapCell;
+import wang.excel.common.model.BaseProduceParam;
+import wang.excel.common.model.BeanProduceParam;
+import wang.excel.common.model.CellData;
+import wang.excel.common.util.ProduceUtil;
+import wang.excel.template.produce.iwf.ProduceModify;
+import wang.excel.template.produce.iwf.ProduceSkip;
+import wang.util.ReflectUtil;
 
 /**
  * 普通模板解析构建实现 依赖于 @Excel
- * 使用,模板解析时,当需要指定子实体中集合类初始化的类型时(ArrayList.class)可以配合 @ExcelC 指定 注解的具体使用详见 注解说明
- * 解析构建均 支持表的过滤 skip实现 解析支持的操做有 数据解析完成后修正操作 importModify 实现 构建支持 数据转换后的修正 modify
- * 实现 模板 的key格式类似于 spring的实体解析 以#{}包裹 形似 #{wo.ni[4].ta} 主实体中字段wo中集合ni的第5个的属性ta
+ * 使用,模板解析时,当需要指定子实体中集合类初始化的类型时(ArrayList.class)可以配合 @NestExcel 指定 注解的具体使用详见
+ * 注解说明 解析构建均 支持表的过滤 skip实现 解析支持的操做有 数据解析完成后修正操作 importModify 实现 构建支持 数据转换后的修正
+ * modify 实现 模板 的key格式类似于 spring的实体解析 以#{}包裹 形似 #{wo.ni[4].ta}
+ * 主实体中字段wo中集合ni的第5个的属性ta
  *
- * @author Administrator
+ * @author wangshaopeng
  *
  * @param <E>
  */
@@ -62,7 +65,6 @@ public class ExcelTemplateProduceServer {
 	 */
 	private ProduceSkip skip;
 
-
 	/**
 	 * 解析构建自定义
 	 *
@@ -82,18 +84,18 @@ public class ExcelTemplateProduceServer {
 	 * @param entity 实体
 	 * @return
 	 */
-	public Workbook create(InputStream templateIs,Object entity,Map<String,Object> adherentInfo) {
+	public Workbook create(InputStream templateIs, Object entity, Map<String, Object> adherentInfo) {
 		Assert.notNull(templateIs, "构建模板源为空");
 		Workbook resultWb;// 创建输出源
 		// 定义字段和解析属性间缓存映射关系 key是 field.toString()
-		Map<String, BeanProduceParam> beanProduceParamMap = new HashMap<>();
+		Map<String, BaseProduceParam> beanProduceParamMap = new HashMap<>();
 		try {
 			resultWb = WorkbookFactory.create(templateIs);
 			List<Integer> removeIndexChain = new ArrayList<>();
 			Set<String> adherentKeys = adherentInfo == null ? SetUtils.EMPTY_SET : adherentInfo.keySet();
 			for (int i = 0; i < resultWb.getNumberOfSheets(); i++) {
 				Sheet oneSheet = resultWb.getSheetAt(i);
-				if (skip != null && skip.skip(oneSheet, entity,adherentInfo)) {
+				if (skip != null && skip.skip(oneSheet, entity, adherentInfo)) {
 					// 由于删除一个后,其实后面的下标都变了,所以这里要减去已删除的个数下标
 					removeIndexChain.add(i - removeIndexChain.size());
 					continue;
@@ -102,17 +104,17 @@ public class ExcelTemplateProduceServer {
 					for (Cell oneCell : oneRow) {
 						if (oneCell.getCellType() == Cell.CELL_TYPE_STRING) {
 							String cellVal = oneCell.getStringCellValue();
-							Set<String> matchs = matchAndReturn(cellVal, false);
-							for (String match : matchs) {
+							Set<String> matchSet = matchAndReturn(cellVal, false);
+							for (String match : matchSet) {
 								// 扩展值
 								String allKey = removePrefixAndSuffixAndBlank(match);
 								// 如果附着属性包含直接走附着属性
 								if (adherentKeys.contains(allKey)) {
-									swrap4AdherentInfo(beanProduceParamMap, oneCell, match, allKey,adherentInfo);
+									swap4AdherentInfo(beanProduceParamMap, oneCell, match, allKey, adherentInfo);
 								} else {
-									//以附着属性开头的
-									boolean adherent = swraped4StartAdherent(beanProduceParamMap, adherentKeys, oneCell, match, allKey,adherentInfo);
-									if(!adherent){
+									// 以附着属性开头的
+									boolean adherent = swap4StartAdherent(beanProduceParamMap, adherentKeys, oneCell, match, allKey, adherentInfo);
+									if (!adherent) {
 										// 最后再原始方式匹配
 										replaceCellData(match, allKey, entity, oneCell, beanProduceParamMap);
 									}
@@ -143,6 +145,7 @@ public class ExcelTemplateProduceServer {
 
 	/**
 	 * 附着属性开头的先解析
+	 * 
 	 * @param beanProduceParamMap
 	 * @param adherentKeys
 	 * @param oneCell
@@ -150,7 +153,7 @@ public class ExcelTemplateProduceServer {
 	 * @param allKey
 	 * @return 是否被匹配到
 	 */
-	private boolean  swraped4StartAdherent(Map<String, BeanProduceParam> beanProduceParamMap, Set<String> adherentKeys, Cell oneCell, String match, String allKey, Map<String,Object> adherentInfo) {
+	private boolean swap4StartAdherent(Map<String, BaseProduceParam> beanProduceParamMap, Set<String> adherentKeys, Cell oneCell, String match, String allKey, Map<String, Object> adherentInfo) {
 		// 扩展属性有可能中间匹配
 		int inl = allKey.indexOf("[");
 		String canKey = null;
@@ -168,9 +171,9 @@ public class ExcelTemplateProduceServer {
 			for (String s : split) {
 				key += s;
 				if (adherentKeys.contains(key)) {
-					String skey = allKey.substring(key.length()+1);
+					String ak = allKey.substring(key.length() + 1);
 					Object data = adherentInfo.get(key);
-					replaceCellData(match, skey, data, oneCell, beanProduceParamMap);
+					replaceCellData(match, ak, data, oneCell, beanProduceParamMap);
 					return true;
 				}
 				key += ".";
@@ -181,13 +184,14 @@ public class ExcelTemplateProduceServer {
 
 	/**
 	 * 使用附着信息赋值
+	 * 
 	 * @param beanProduceParamMap
 	 * @param oneCell
 	 * @param match
 	 * @param allKey
 	 */
-	private void swrap4AdherentInfo(Map<String, BeanProduceParam> beanProduceParamMap, Cell oneCell, String match, String allKey, Map<String,Object> adherentInfo) {
-		BeanProduceParam beanProduceParam = beanProduceParamMap.get(allKey);
+	private void swap4AdherentInfo(Map<String, BaseProduceParam> beanProduceParamMap, Cell oneCell, String match, String allKey, Map<String, Object> adherentInfo) {
+		BaseProduceParam beanProduceParam = beanProduceParamMap.get(allKey);
 		if (beanProduceParam == null) {
 			beanProduceParam = new BeanProduceParam();
 			beanProduceParamMap.put(allKey, beanProduceParam);
@@ -204,12 +208,11 @@ public class ExcelTemplateProduceServer {
 	 * 为模板填充数据
 	 *
 	 * @param match  匹配到的key
-	 * @param t      实体
 	 * @param allKey 被匹配的所有的key
 	 * @param cell   填充的单元格
 	 * @return 最终匹配到的值是不是空
 	 */
-	private void replaceCellData(String match, String allKey, Object e, Cell cell, final Map<String, BeanProduceParam> field2ParamCache) {
+	private void replaceCellData(String match, String allKey, Object e, Cell cell, final Map<String, BaseProduceParam> field2ParamCache) {
 		if (e == null) {
 			// 第一次进入没有,则直接赋值null
 			// 这里有bug就是如果早早的没了怎没有了这个体现
@@ -239,7 +242,7 @@ public class ExcelTemplateProduceServer {
 				CellData cellData;
 				// 去除所有数字为缓存的key
 				String cacheKey = allKey.replaceAll("\\[\\d+]", "[]");
-				BeanProduceParam p = field2ParamCache.get(cacheKey);
+				BaseProduceParam p = field2ParamCache.get(cacheKey);
 				if (p == null) {
 					// 解析参数
 					p = deduceProduceParam(cacheKey, currentType, main);
@@ -280,7 +283,7 @@ public class ExcelTemplateProduceServer {
 	 * @param main
 	 * @return
 	 */
-	private BeanProduceParam deduceProduceParam(String cacheKey, Class currentType, String main) {
+	private BaseProduceParam deduceProduceParam(String cacheKey, Class currentType, String main) {
 		BeanProduceParam param = new BeanProduceParam();
 		if (convertMap != null && convertMap.containsKey(cacheKey)) {
 			param.setProduceConvert(convertMap.get(cacheKey));
@@ -289,8 +292,7 @@ public class ExcelTemplateProduceServer {
 
 		try {
 			Field currentField = ReflectionUtils.findField(currentType, main);
-
-			return ProduceUtil.field2ProduceParam(currentField);
+			return ProduceUtil.field2BaseProduceParam(currentField);
 		} catch (Exception e) {
 		}
 		return param;
@@ -332,14 +334,14 @@ public class ExcelTemplateProduceServer {
 		}
 		try {
 			Field currentField = ReflectionUtils.findField(currentClass, main);
-			Assert.notNull(currentField,"获取属性失败,类:"+current.getClass()+"属性:"+main);
+			Assert.notNull(currentField, "获取属性失败,类:" + current.getClass() + "属性:" + main);
 			if (isOne) {
-				currentClass =currentField.getType();
+				currentClass = currentField.getType();
 			} else {
 				Class[] cs = ReflectUtil.getFieldActualType(currentField);
 				if (cs.length == 1) {
 					currentClass = cs[0];
-				} else if (current != null) {
+				} else {
 					Object property = PropertyUtils.getProperty(current, main);
 					if (property instanceof List && ((List) property).size() > 0) {
 						currentClass = ((List) property).get(0).getClass();
@@ -366,7 +368,7 @@ public class ExcelTemplateProduceServer {
 	/**
 	 * 解析字符串是否匹配指定规则并将结果取出返回 已经取出中间多余的空格 分段匹配,,
 	 *
-	 * @param templateVal
+	 * @param templateVal                   模板值
 	 * @param removePrefixAndSuffixAndBlank 是否去除左右包边和中间空格
 	 * @return 匹配不到返回空set
 	 */
@@ -393,7 +395,6 @@ public class ExcelTemplateProduceServer {
 	private String removePrefixAndSuffixAndBlank(String match) {
 		return StringUtils.deleteWhitespace(match.substring(2, match.length() - 1));
 	}
-
 
 	public ProduceModify getModify() {
 		return modify;

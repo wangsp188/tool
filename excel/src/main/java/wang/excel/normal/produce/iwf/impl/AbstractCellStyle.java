@@ -12,21 +12,20 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public class AbstractCellStyle {
 	/**
-	 * 用于存放style缓存,避免一个workbook多次创建一样的style,容易造成数量上限错误
-	 */
-	protected final Map<Workbook, CellStyle> styleMap;
-	/**
 	 * 字符串
 	 */
 	protected static final short STRING_FORMAT = (short) BuiltinFormats.getBuiltinFormat("TEXT");
-
+	/**
+	 * 用于存放style缓存,避免一个workbook多次创建一样的style,容易造成数量上限错误
+	 */
+	protected final Map<Workbook, CellStyle> styleMap;
 	/**
 	 * 是否换行
 	 */
 	protected boolean isWarp;
 
 	protected AbstractCellStyle() {
-		styleMap = new HashMap<Workbook, CellStyle>();
+		styleMap = new HashMap<>();
 		isWarp = true;
 	}
 

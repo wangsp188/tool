@@ -1,8 +1,8 @@
 package wang.excel.normal.produce;
 
-import wang.excel.common.iwf.WorkbookType;
-import wang.excel.normal.produce.iwf.SheetModule;
-import org.apache.commons.collections.CollectionUtils;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -10,48 +10,48 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import wang.excel.common.iwf.WorkbookType;
+import wang.excel.normal.produce.iwf.SheetModule;
 
+/**
+ * excel构建服务
+ */
 public class ExcelNormalProduceServer {
 	protected static Logger logger = LoggerFactory.getLogger(ExcelNormalProduceServer.class);
-
-	/**
-	 * 表格类型
-	 */
-	private int workbookType = WorkbookType.HSSF.getType();
-
-	/**
-	 * sheet名
-	 */
-	private String sheetName = "构建";
-
 	/**
 	 * 表格模块接口
 	 */
-	private List<SheetModule> modules;
-
-	protected void init() {
-		if (modules != null) {
-			Collections.sort(modules);
-		}
-	}
+	private final List<SheetModule> modules = new ArrayList<>();
+	/**
+	 * 表格类型
+	 */
+	private WorkbookType workbookType = WorkbookType.HSSF;
+	/**
+	 * sheet名
+	 */
+	private String sheetName = "导出";
 
 	public ExcelNormalProduceServer() {
 	}
 
+	public ExcelNormalProduceServer(WorkbookType workbookType, String sheetName, List<SheetModule> sheetPostProcessors) {
+		this.workbookType = workbookType;
+		this.sheetName = sheetName;
+		this.modules.addAll(sheetPostProcessors);
+	}
+
+	public ExcelNormalProduceServer(SheetModule post) {
+		modules.add(post);
+	}
+
 	/**
 	 * 添加块
-	 * 
+	 *
 	 * @param modules
 	 * @return
 	 */
 	public ExcelNormalProduceServer addModule(SheetModule... modules) {
 		if (modules != null) {
-			if (this.modules == null) {
-				this.modules = new ArrayList<>();
-			}
 			for (SheetModule module : modules) {
 				if (module != null) {
 					this.modules.add(module);
@@ -62,60 +62,43 @@ public class ExcelNormalProduceServer {
 		return this;
 	}
 
-	public ExcelNormalProduceServer(int workbookType, String sheetName, List<SheetModule> sheetPostProcessors) {
-		this.workbookType = workbookType;
-		this.sheetName = sheetName;
-		this.modules = sheetPostProcessors;
-	}
-
-	public ExcelNormalProduceServer(SheetModule post) {
-		modules = new ArrayList<>();
-		modules.add(post);
-	}
-
 	/**
 	 * 构建功能流程函数
 	 *
 	 * @return
 	 */
 	public Workbook produce() {
-		Workbook workbook ;
+		Workbook workbook;
 		try {
-			init();
-
 			switch (workbookType) {
-			case 1:
+			case HSSF:
 				workbook = new HSSFWorkbook();
 				break;
-			case 2:
+			case XSSF:
 				workbook = new XSSFWorkbook();
 				break;
 			default:
 				throw new IllegalArgumentException("非法参数");
 			}
 			Sheet sheet = workbook.createSheet(sheetName);
-
-			if (!CollectionUtils.isEmpty(modules)) {
-				for (SheetModule module : modules) {
-					if (!module.sheet(sheet)) {
-						logger.info("退出表格拼接!");
-						break;
-					}
-				}
+			// 排序
+			modules.sort((o1, o2) -> {
+				if (o1 == null && o2 == null)
+					return 0;
+				if (o1 == null)
+					return -1;
+				if (o2 == null)
+					return 1;
+				return o2.getOrder() - o1.getOrder();
+			});
+			for (SheetModule module : modules) {
+				module.sheet(sheet);
 			}
 
 		} catch (Exception e) {
 			throw new RuntimeException("拼接过程失败:" + e.getMessage(), e);
 		}
 		return workbook;
-	}
-
-	public int getWorkbookType() {
-		return workbookType;
-	}
-
-	public void setWorkbookType(int workbookType) {
-		this.workbookType = workbookType;
 	}
 
 	public String getSheetName() {
@@ -126,13 +109,15 @@ public class ExcelNormalProduceServer {
 		this.sheetName = sheetName;
 	}
 
-
 	public List<SheetModule> getModules() {
 		return modules;
 	}
 
-	public void setModules(List<SheetModule> modules) {
-		this.modules = modules;
+	public WorkbookType getWorkbookType() {
+		return workbookType;
 	}
 
+	public void setWorkbookType(WorkbookType workbookType) {
+		this.workbookType = workbookType;
+	}
 }

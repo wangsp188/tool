@@ -10,7 +10,6 @@ public class ProcessException extends Exception {
 	 */
 	private ErrorType type;
 
-
 	public ProcessException(String message, ErrorType type) {
 		super(message);
 		this.type = type;
@@ -43,8 +42,6 @@ public class ProcessException extends Exception {
 	public void setType(ErrorType type) {
 		this.type = type;
 	}
-
-
 
 	/**
 	 * 异常类型

@@ -1,14 +1,14 @@
 package wang.process.core;
 
-import wang.util.CommonUtil;
-import wang.util.SafeMap;
-
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import wang.util.CommonUtil;
+import wang.util.SafeMap;
 
 /**
  * 基础环境 抽象类
@@ -25,12 +25,10 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	 */
 	private static final String key_status = "BaseCxt:status";
 
-
 	/**
 	 * Future 异步执行时的future
 	 */
 	private static final String key_future = "BaseCxt:future";
-
 
 	/**
 	 * String 唯一标识,默认uuid,可自行根据业务自定义
@@ -45,7 +43,7 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	/**
 	 * 是否使用过 构思是不支持多次使用一个process,因为执行过程中,属性会变的很混乱
 	 */
-	private  AtomicBoolean useMark = new AtomicBoolean(false);
+	private AtomicBoolean useMark = new AtomicBoolean(false);
 
 	{
 		// 默认状态
@@ -70,7 +68,7 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	 * @return
 	 */
 	int getStatus() {
-		Integer integer = Integer.valueOf((String)get(key_status),2);
+		Integer integer = Integer.valueOf((String) get(key_status), 2);
 		return integer == null ? 0 : integer;
 	}
 
@@ -82,7 +80,6 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	void setStatus(int status) {
 		put(key_status, CommonUtil.int2BitStr(status));
 	}
-
 
 	/**
 	 * 获取异步的future
@@ -121,7 +118,6 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 		return Status.or(getStatus(), Status.abortEnd, Status.normalEnd);
 	}
 
-
 	/**
 	 * 是否异常结束(流程代码异常)
 	 *
@@ -132,8 +128,8 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	}
 
 	/**
-	 * 是否正常结束
-	 * 流程代码ok(代码依据规则执行完毕)
+	 * 是否正常结束 流程代码ok(代码依据规则执行完毕)
+	 * 
 	 * @return
 	 */
 	public boolean isNormalEnd() {
@@ -142,12 +138,12 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 
 	/**
 	 * 是否验证通过
+	 * 
 	 * @return
 	 */
-	public boolean isValid(){
+	public boolean isValid() {
 		return Status.valid.is(getStatus());
 	}
-
 
 	/**
 	 * 是否已经执行过
@@ -166,8 +162,6 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	boolean use() {
 		return useMark.compareAndSet(false, true);
 	}
-
-
 
 	/**
 	 * 设置process名称
@@ -189,7 +183,6 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 
 	}
 
-
 	/**
 	 * 获取 唯一traceid
 	 *
@@ -207,7 +200,6 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	public void setTraceId(String traceId) {
 		put(key_traceId, traceId);
 	}
-
 
 	/**
 	 * 获取异常
@@ -262,36 +254,32 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	}
 
 	/**
-	 * 有些参数启动后,不允许设置
-	 * 此函数校验
+	 * 有些参数启动后,不允许设置 此函数校验
 	 */
 	protected void doNotUsing() {
 		if (isUsed()) {
-			throw new UnsupportedOperationException("traceId:"+getTraceId()+"已经执行,不支持再设置此参数!");
+			throw new UnsupportedOperationException("traceId:" + getTraceId() + "已经执行,不支持再设置此参数!");
 		}
 	}
-
 
 	/**
 	 * 等待结束
 	 */
 	public void waitEnd(int wait) throws ExecutionException, InterruptedException, TimeoutException {
-		if(isEnd()){
+		if (isEnd()) {
 			return;
 		}
 		CompletableFuture<Void> future = getFuture();
-		if(future!=null){
+		if (future != null) {
 			future.get(wait, TimeUnit.MILLISECONDS);
 		}
 		throw new IllegalStateException("status 异常!");
 
 	}
 
-
 	/**
 	 * 执行
 	 */
 	public abstract void execute();
-
 
 }

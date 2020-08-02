@@ -1,9 +1,11 @@
 package wang.excel.common.model;
 
-import wang.excel.common.iwf.ImgProduce;
+import wang.excel.common.iwf.ImgProduceStrategy;
 import wang.excel.common.iwf.ProduceConvert;
 
-
+/**
+ * 基础构建参数
+ */
 public class BaseProduceParam extends ExcelParam {
 
 	/**
@@ -12,24 +14,23 @@ public class BaseProduceParam extends ExcelParam {
 	protected String nullStr;
 
 	/**
-	 * 宽度 默认宽度是10
-	 */
-	protected double width = 10;
-
-	/**
-	 * 高度
-	 */
-	protected short height = 15;
-
-	/**
 	 * 图片构建策略
 	 */
-	protected ImgProduce imgProduce = ImgProduce.adaptable;
+	protected ImgProduceStrategy imgProduceStrategy;
 
 	/**
 	 * 特殊构建策略,优先级贼高
 	 */
 	protected ProduceConvert produceConvert;
+
+	/**
+	 * 方法级的构建转换
+	 */
+	protected String methodProduceConvert;
+
+	public BaseProduceParam() {
+		super();
+	}
 
 	public ProduceConvert getProduceConvert() {
 		return produceConvert;
@@ -39,12 +40,12 @@ public class BaseProduceParam extends ExcelParam {
 		this.produceConvert = produceConvert;
 	}
 
-	public ImgProduce getImgProduce() {
-		return imgProduce;
+	public ImgProduceStrategy getImgProduceStrategy() {
+		return imgProduceStrategy;
 	}
 
-	public void setImgProduce(ImgProduce imgProduce) {
-		this.imgProduce = imgProduce;
+	public void setImgProduceStrategy(ImgProduceStrategy imgProduceStrategy) {
+		this.imgProduceStrategy = imgProduceStrategy;
 	}
 
 	public String getNullStr() {
@@ -55,34 +56,16 @@ public class BaseProduceParam extends ExcelParam {
 		this.nullStr = nullStr;
 	}
 
-	public double getWidth() {
-		return width;
+	public String getMethodProduceConvert() {
+		return methodProduceConvert;
 	}
 
-	public void setWidth(double width) {
-		this.width = width;
-	}
-
-	public short getHeight() {
-		return height;
-	}
-
-	public void setHeight(short height) {
-		this.height = height;
+	public void setMethodProduceConvert(String methodProduceConvert) {
+		this.methodProduceConvert = methodProduceConvert;
 	}
 
 	@Override
 	public String toString() {
-		return "BaseProduceParam{" +
-				"nullStr='" + nullStr + '\'' +
-				", width=" + width +
-				", height=" + height +
-				", imgProduce=" + imgProduce +
-				", produceConvert=" + produceConvert +
-				", dicMap=" + dicMap +
-				", multiChoice=" + multiChoice +
-				", dicErr=" + dicErr +
-				", imgStoreStrategy=" + imgStoreStrategy +
-				'}';
+		return "BaseProduceParam{" + "nullStr='" + nullStr + '\'' + ", imgProduceStrategy=" + imgProduceStrategy + ", produceConvert=" + produceConvert + ", methodProduceConvert='" + methodProduceConvert + '\'' + ", dicMap=" + dicMap + ", multiChoice=" + multiChoice + ", dicErr=" + dicErr + ", imgStoreStrategy=" + imgStoreStrategy + '}';
 	}
 }

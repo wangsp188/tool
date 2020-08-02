@@ -9,7 +9,7 @@ import wang.iwf.Ops;
 /**
  * 实现了回滚逻辑的的任务节点模板
  */
-public abstract class RollbackTaskTemplate implements Task, Rollback, SpringTaskTemplate{
+public abstract class RollbackTaskTemplate implements Task, Rollback, SpringTaskTemplate {
 	private static final Logger log = LoggerFactory.getLogger(RollbackTaskTemplate.class);
 
 	/**
@@ -32,9 +32,9 @@ public abstract class RollbackTaskTemplate implements Task, Rollback, SpringTask
 	}
 
 	/**
-	 * 任务执行
-	 * 特别注意:chain.doChain()函数,应该在前面代码执行无误的情况下才执行他
+	 * 任务执行 特别注意:chain.doChain()函数,应该在前面代码执行无误的情况下才执行他
 	 * 不要在finally里执行,这样前面报错了,不应该执行后续代码时,就会导致,接着不按常理的执行下去,导致流程错误的bug
+	 * 
 	 * @throws Throwable
 	 */
 	public abstract void doTask0(SimpleProcess process, MarkChain chain) throws Throwable;

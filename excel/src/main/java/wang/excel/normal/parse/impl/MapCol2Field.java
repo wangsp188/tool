@@ -1,19 +1,20 @@
 package wang.excel.normal.parse.impl;
 
+import java.lang.reflect.Field;
+import java.util.Map;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;
+
 import wang.excel.normal.parse.iwf.Col2Field;
 import wang.excel.normal.parse.model.TitleFieldParam;
-
-import java.lang.reflect.Field;
-import java.util.Map;
 
 /**
  * 表头和字段对应关系map实现 不支持一对多
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 public class MapCol2Field implements Col2Field {

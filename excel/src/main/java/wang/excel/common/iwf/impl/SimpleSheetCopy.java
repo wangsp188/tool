@@ -1,18 +1,6 @@
 package wang.excel.common.iwf.impl;
 
-import wang.excel.common.iwf.SheetCopy;
-import wang.excel.common.util.ExcelUtil;
-import net.sf.jmimemagic.*;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.poi.POIXMLDocumentPart;
-import org.apache.poi.hssf.usermodel.*;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.*;
-
-import javax.imageio.ImageIO;
 import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -20,15 +8,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.poi.POIXMLDocumentPart;
+import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
+
+import net.sf.jmimemagic.*;
+import wang.excel.common.iwf.SheetCopy;
+import wang.excel.common.util.ExcelUtil;
+
 /**
  * 默认实现
  */
 public class SimpleSheetCopy implements SheetCopy {
-	@Override
-	public void copySheet(Sheet resource, Sheet target) throws SheetCopyException {
-		SimpleSheetCopy.cloneSheet(resource, target);
-	}
-
 	/**
 	 * 复制sheet(包括图片)
 	 *
@@ -37,14 +33,14 @@ public class SimpleSheetCopy implements SheetCopy {
 	 */
 	public synchronized static void cloneSheet(Sheet fromSheet, Sheet toSheet) throws SheetCopyException {
 		try {
-			if(fromSheet==null){
+			if (fromSheet == null) {
 				throw new IllegalArgumentException("源sheet不可为空");
 			}
-			if(toSheet==null){
+			if (toSheet == null) {
 				throw new IllegalArgumentException("目标sheet不可为空");
 			}
 			if (!(fromSheet.getClass().equals(toSheet.getClass()))) {
-				throw new IllegalArgumentException("表头模版工作表必须和目标模板工作表格式相同");
+				throw new IllegalArgumentException("模版工作表必须和目标模板工作表格式相同");
 			}
 			if (fromSheet instanceof XSSFSheet) {
 				copySheet((XSSFSheet) fromSheet, (XSSFSheet) toSheet);
@@ -61,7 +57,7 @@ public class SimpleSheetCopy implements SheetCopy {
 
 	/**
 	 * 功能：拷贝sheet
-	 * 
+	 *
 	 * @param targetSheet 目标单元格
 	 * @param sourceSheet 源单元格
 	 */
@@ -104,7 +100,7 @@ public class SimpleSheetCopy implements SheetCopy {
 
 	/**
 	 * 功能：拷贝row
-	 * 
+	 *
 	 * @param targetRow
 	 * @param sourceRow
 	 * @param styleMap
@@ -140,7 +136,7 @@ public class SimpleSheetCopy implements SheetCopy {
 
 	/**
 	 * 功能：拷贝cell，依据styleMap是否为空判断是否拷贝单元格样式
-	 * 
+	 *
 	 * @param targetCell 不能为空
 	 * @param sourceCell 不能为空
 	 * @param targetWork 不能为空
@@ -196,7 +192,7 @@ public class SimpleSheetCopy implements SheetCopy {
 
 	/**
 	 * 功能：拷贝comment
-	 * 
+	 *
 	 * @param targetCell
 	 * @param sourceCell
 	 * @param targetPatriarch
@@ -234,7 +230,7 @@ public class SimpleSheetCopy implements SheetCopy {
 	/**
 	 * 功能：复制原有sheet的合并单元格到新创建的sheet
 	 *
-	 * @param sheetCreat
+	 * @param targetSheet
 	 * @param sourceSheet
 	 */
 	private static void mergerRegion(HSSFSheet targetSheet, HSSFSheet sourceSheet) throws Exception {
@@ -267,9 +263,9 @@ public class SimpleSheetCopy implements SheetCopy {
 			if (fromSheet instanceof HSSFSheet) {// 03xls
 				// 遍历表格中的图片
 				List<HSSFShape> list = null;
-				HSSFPatriarch patri = ((HSSFSheet) fromSheet).getDrawingPatriarch();
-				if (patri != null) {
-					list = patri.getChildren();
+				HSSFPatriarch drawingPatriarch = ((HSSFSheet) fromSheet).getDrawingPatriarch();
+				if (drawingPatriarch != null) {
+					list = drawingPatriarch.getChildren();
 				}
 				if (list == null) {
 					return;
@@ -288,11 +284,11 @@ public class SimpleSheetCopy implements SheetCopy {
 							int dy2 = Math.min(255, cAnchor.getDy2());
 							short col1 = (short) Math.min(255, cAnchor.getCol1());
 							short col2 = (short) Math.min(255, cAnchor.getCol2());
-							ClientAnchor ancho = new HSSFClientAnchor(dx1, dy1, dx2, dy2, col1, cAnchor.getRow1(), col2, cAnchor.getRow2());
-							ancho.setAnchorType(cAnchor.getAnchorType());
+							ClientAnchor anchor = new HSSFClientAnchor(dx1, dy1, dx2, dy2, col1, cAnchor.getRow1(), col2, cAnchor.getRow2());
+							anchor.setAnchorType(cAnchor.getAnchorType());
 							// 插入图片
 							int pictureType = deducePictureType(pictureData.getMimeType());
-							patriarch.createPicture(ancho, toSheet.getWorkbook().addPicture(data, pictureType));
+							patriarch.createPicture(anchor, toSheet.getWorkbook().addPicture(data, pictureType));
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -306,7 +302,6 @@ public class SimpleSheetCopy implements SheetCopy {
 					try {
 						if (part instanceof XSSFDrawing) {
 							XSSFDrawing drawing = (XSSFDrawing) part;
-							// System.out.println(drawing.getCTDrawing());
 							List<XSSFShape> shapes = drawing.getShapes();
 							for (XSSFShape shape : shapes) {
 								XSSFPicture picture = (XSSFPicture) shape;
@@ -347,8 +342,8 @@ public class SimpleSheetCopy implements SheetCopy {
 				for (PictureData p : pictureDataL) {
 					try {
 						// 图片类型
-						int pctype = deducePictureType(p.getMimeType());
-						insertImg2Sheet(patriarch, p.getData(), pctype, targetCell, 1, -1);// 这里默认复制 auchotype和resize用了无效的值
+						int pictureType = deducePictureType(p.getMimeType());
+						insertImg2Sheet(patriarch, p.getData(), pictureType, targetCell, 1, -1);// 这里默认复制 auchotype和resize用了无效的值
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -359,7 +354,7 @@ public class SimpleSheetCopy implements SheetCopy {
 
 	/**
 	 * 复制07excel 可能有问题
-	 * 
+	 *
 	 * @param fromSheet 源sheet
 	 * @param toSheet   目标sheet
 	 * @return
@@ -391,17 +386,7 @@ public class SimpleSheetCopy implements SheetCopy {
 		for (int i = 0; i < maxCellNum; i++) {
 			toSheet.setColumnWidth(i, fromSheet.getColumnWidth(i));
 		}
-
-		// (最后一步) 复制图片,为解决07版本模板中获取源图片丢失的问题,创建临时excel,从中读取图片,后再删除,该过程在某些表格中会报错,无从解决
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream();ByteArrayInputStream is = new ByteArrayInputStream(out.toByteArray())){
-
-			fromSheet.getWorkbook().write(out);
-
-			fromSheet = (XSSFSheet) WorkbookFactory.create(is).getSheetAt(0);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+		// TODO (最后一步) 复制图片,07版本模板中获取源图片会丢失的问题
 		cloneSheetImg(fromSheet, toSheet);
 	}
 
@@ -410,7 +395,7 @@ public class SimpleSheetCopy implements SheetCopy {
 	 *
 	 * @param fromRow
 	 * @param toRow
-	 * @param towb    目标工作表
+	 * @param toRow   目标工作表
 	 */
 	private static void copySheetRow(XSSFRow fromRow, XSSFRow toRow) {
 		int cellCount = fromRow.getLastCellNum();// 每行的总列数
@@ -466,8 +451,8 @@ public class SimpleSheetCopy implements SheetCopy {
 	/**
 	 * 复制原有sheet的合并单元格到新创建的sheet
 	 *
-	 * @param sheetCreat 新创建sheet
-	 * @param sheet      原有的sheet
+	 * @param fromSheet 新创建sheet
+	 * @param toSheet   原有的sheet
 	 */
 	private static void mergerRegion(Sheet fromSheet, Sheet toSheet) {
 		int sheetMergerCount = fromSheet.getNumMergedRegions();
@@ -479,19 +464,19 @@ public class SimpleSheetCopy implements SheetCopy {
 
 	/**
 	 * 向指定单元格写入图片
-	 * 
-	 * @param resource  源图片
-	 * @param cell      单元格
-	 * @param patriarch 画笔
-	 * @param auchoType 图片占据规则 0 2 3
-	 * @param resize    图片缩放大小,当该值大于0时有效(该参数会覆盖上面的图片展具规则)
+	 *
+	 * @param resource   源图片
+	 * @param cell       单元格
+	 * @param patriarch  画笔
+	 * @param anchorType 图片占据规则 0 2 3
+	 * @param resize     图片缩放大小,当该值大于0时有效(该参数会覆盖上面的图片展具规则)
 	 * @return
 	 */
-	public static void insertImg2Sheet(File resource, Cell cell, Drawing patriarch, int auchoType, double resize) {
+	public static void insertImg2Sheet(File resource, Cell cell, Drawing patriarch, int anchorType, double resize) {
 		RenderedImage bufferImg;
 		try {
 			if (resource == null) {
-				insertImg2Sheet(patriarch, new byte[] {}, Workbook.PICTURE_TYPE_JPEG, cell, auchoType, resize);
+				insertImg2Sheet(patriarch, new byte[] {}, Workbook.PICTURE_TYPE_JPEG, cell, anchorType, resize);
 				return;
 			}
 			// 图片类型
@@ -505,19 +490,16 @@ public class SimpleSheetCopy implements SheetCopy {
 			ByteArrayOutputStream byteArrayOut = new ByteArrayOutputStream();
 			String extension = SimpleSheetCopy.getExtend(resource.getName());
 			ImageIO.write(bufferImg, extension, byteArrayOut);
-			insertImg2Sheet(patriarch, byteArrayOut.toByteArray(), deducePictureType(mimeType), cell, auchoType, resize);
+			insertImg2Sheet(patriarch, byteArrayOut.toByteArray(), deducePictureType(mimeType), cell, anchorType, resize);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-
-	private static String getExtend(String name){
+	private static String getExtend(String name) {
 		int index = name.lastIndexOf(".");
-		return name.substring(index+1);
+		return name.substring(index + 1);
 	}
-
-
 
 	/**
 	 * 获取文件mimeType
@@ -539,24 +521,22 @@ public class SimpleSheetCopy implements SheetCopy {
 		return null;
 	}
 
-
 	/**
 	 * 向指定单元格写入图片
-	 * 
-	 * @param patriarch 画笔 // 画图的顶级管理器，一个sheet只能获取一个（一定要注意这点） Drawing patriarch =
-	 *                  sheet.createDrawingPatriarch();
-	 * @param bytes     图片二进制数组
-	 * @param extension 原扩展名
-	 * @param cell      目标单元格
-	 * @param auchoType 图片占据规则 0 2 3
-	 * @param resize    图片缩放大小,当该值大于0时有效(该参数会覆盖上面的图片展具规则)
+	 *
+	 * @param patriarch  画笔 // 画图的顶级管理器，一个sheet只能获取一个（一定要注意这点） Drawing patriarch =
+	 *                   sheet.createDrawingPatriarch();
+	 * @param bytes      图片二进制数组
+	 * @param cell       目标单元格
+	 * @param anchorType 图片占据规则 0 2 3
+	 * @param resize     图片缩放大小,当该值大于0时有效(该参数会覆盖上面的图片展具规则)
 	 * @return
 	 */
-	private static void insertImg2Sheet(Drawing patriarch, byte[] bytes, int pctype, Cell cell, int auchoType, double resize) {
-		if(cell==null){
+	private static void insertImg2Sheet(Drawing patriarch, byte[] bytes, int picType, Cell cell, int anchorType, double resize) {
+		if (cell == null) {
 			throw new IllegalArgumentException("操作的单元格不可为空");
 		}
-		if(patriarch==null){
+		if (patriarch == null) {
 			throw new IllegalArgumentException("画笔不可为空");
 		}
 		if (ArrayUtils.isEmpty(bytes)) {
@@ -598,11 +578,11 @@ public class SimpleSheetCopy implements SheetCopy {
 				ancho.setCol2((x2 + 1));
 				ancho.setRow2(y2 + 1);
 			}
-			if (ArrayUtils.contains(new int[] { 0, 2, 3 }, auchoType)) {
-				ancho.setAnchorType(auchoType);// 图片依据单元格大小
+			if (ArrayUtils.contains(new int[] { 0, 2, 3 }, anchorType)) {
+				ancho.setAnchorType(anchorType);// 图片依据单元格大小
 			}
 			// 插入图片 暂时写死jpeg
-			Picture picture = patriarch.createPicture(ancho, wb.addPicture(bytes, pctype));
+			Picture picture = patriarch.createPicture(ancho, wb.addPicture(bytes, picType));
 			if (resize > 0) {
 				picture.resize(resize);
 			}
@@ -613,7 +593,7 @@ public class SimpleSheetCopy implements SheetCopy {
 
 	/**
 	 * 根据mimiType推断 图片类型
-	 * 
+	 *
 	 * @param mimeType
 	 * @return
 	 */
@@ -640,6 +620,11 @@ public class SimpleSheetCopy implements SheetCopy {
 			return Workbook.PICTURE_TYPE_DIB;
 		}
 		return Workbook.PICTURE_TYPE_JPEG;
+	}
+
+	@Override
+	public void copySheet(Sheet resource, Sheet target) throws SheetCopyException {
+		SimpleSheetCopy.cloneSheet(resource, target);
 	}
 
 }

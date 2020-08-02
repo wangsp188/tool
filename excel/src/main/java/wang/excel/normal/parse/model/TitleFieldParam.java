@@ -5,14 +5,16 @@ import java.lang.reflect.Field;
 /**
  * 表格头解析参数
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 @SuppressWarnings("rawtypes")
-public class TitleFieldParam  {
-	private Field field;// 字段,,如果是嵌套实体,则该字段是子实体的字段
+public class TitleFieldParam {
 
-	//嵌套属性信息
+	// 字段,,如果是嵌套实体,则该字段是子实体的字段
+	private Field field;
+
+	// 嵌套属性信息
 	private NestField nestField;
 
 	public TitleFieldParam() {
@@ -20,6 +22,20 @@ public class TitleFieldParam  {
 
 	public TitleFieldParam(Field field) {
 		this.field = field;
+	}
+
+	/**
+	 * 获取嵌套列在主实体中的属性名
+	 * 
+	 * @return
+	 * @throws IllegalStateException
+	 */
+	public String getFieldNameInParent() throws IllegalStateException {
+		if (!isNest()) {
+			throw new IllegalStateException("非嵌套列");
+		}
+		return getNestField().getFieldNameInParent();
+
 	}
 
 	public Field getField() {
@@ -31,7 +47,7 @@ public class TitleFieldParam  {
 	}
 
 	public boolean isNest() {
-		return nestField!=null;
+		return nestField != null;
 	}
 
 	public NestField getNestField() {
@@ -42,24 +58,8 @@ public class TitleFieldParam  {
 		this.nestField = nestField;
 	}
 
-	/**
-	 * 获取嵌套列在主实体中的属性名
-	 * @return
-	 * @throws IllegalStateException
-	 */
-	public String getFieldNameInParent() throws IllegalStateException{
-		if(!isNest()){
-			throw new IllegalStateException("非嵌套列");
-		}
-		return getNestField().getFieldNameInParent();
-
-	}
-
 	@Override
 	public String toString() {
-		return "TitleFieldParam{" +
-				"field=" + field +
-				", nestField=" + nestField +
-				'}';
+		return "TitleFieldParam{" + "field=" + field + ", nestField=" + nestField + '}';
 	}
 }

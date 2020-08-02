@@ -1,12 +1,11 @@
 package wang.excel.common.model;
 
-
 import wang.excel.common.iwf.ParseResource;
 
 /**
  * 解析一个实体结果
  * 
- * @author Administrator
+ * @author wangshaopeng
  *
  */
 public abstract class ParseOneResult<T> {
@@ -20,13 +19,6 @@ public abstract class ParseOneResult<T> {
 	 * @return
 	 */
 	public abstract boolean isSuccess();
-
-	/**
-	 * 描述信息
-	 * 
-	 * @return
-	 */
-	public abstract String detail();
 
 	/**
 	 * 便捷转换
