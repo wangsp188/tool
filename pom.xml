@@ -13,6 +13,7 @@
         <module>common</module>
         <module>excel</module>
         <module>process</module>
+        <module>rule</module>
     </modules>
     <groupId>com.wang</groupId>
     <artifactId>tool</artifactId>
