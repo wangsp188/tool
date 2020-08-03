@@ -1,4 +1,4 @@
-package wang.excel.common.model;
+package wang.model;
 
 /**
  * 结果超类

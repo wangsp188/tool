@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.Assert;
+import wang.model.ResultSuper;
 
 /**
  * 文件解析结果

@@ -27,7 +27,7 @@ import wang.excel.normal.parse.iwf.Sheet2ParseParam;
 import wang.excel.normal.parse.model.ListParseParam;
 import wang.excel.normal.parse.model.ParseParam;
 import wang.excel.normal.parse.model.TitleFieldParam;
-import wang.util.Container;
+import wang.model.Container;
 import wang.util.PrintUtil;
 import wang.util.ReflectUtil;
 

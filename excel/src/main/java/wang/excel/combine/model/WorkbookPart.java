@@ -1,9 +1,9 @@
-package wang.excel.advanced.compose.model;
+package wang.excel.combine.model;
 
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import wang.excel.advanced.compose.iwf.WorkbookProcess;
+import wang.excel.combine.iwf.WorkbookProcess;
 import wang.excel.common.iwf.SheetCopy;
 import wang.excel.common.iwf.impl.SimpleSheetCopy;
 

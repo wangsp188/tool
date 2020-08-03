@@ -2,9 +2,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import wang.excel.advanced.compose.ExcelComposeServer;
-import wang.excel.advanced.compose.iwf.WorkbookProcess;
-import wang.excel.advanced.compose.model.WorkbookPart;
+import wang.excel.combine.ExcelCombineServer;
+import wang.excel.combine.iwf.WorkbookProcess;
+import wang.excel.combine.model.WorkbookPart;
 import wang.excel.common.iwf.SheetCopy;
 import wang.excel.normal.produce.ExcelNormalProduceServer;
 import wang.excel.normal.produce.iwf.SheetModule;
@@ -16,7 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class ComposeTest {
+public class CombineTest {
 
 	// 将要构建的工作簿
 	Workbook workbook;
@@ -79,7 +79,7 @@ public class ComposeTest {
 		Workbook workbook22 = server22.produce();
 
 		// 工作簿拼接工具
-		ExcelComposeServer server = new ExcelComposeServer();
+		ExcelCombineServer server = new ExcelCombineServer();
 //        //添加模块1
 //        server.addPart(new WorkbookPart(workbook2));
 //        //添加模块2
@@ -93,7 +93,7 @@ public class ComposeTest {
 		}
 //        server.setWorkbookType(WorkbookType.XSSF);
 
-		workbook = server.compose();
+		workbook = server.combine();
 
 	}
 

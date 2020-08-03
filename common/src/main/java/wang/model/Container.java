@@ -1,4 +1,4 @@
-package wang.util;
+package wang.model;
 
 /**
  * @Description 破java 闭包实现不完全,只能final的属性

@@ -1,12 +1,4 @@
-package wang.excel.advanced.compose;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+package wang.excel.combine;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -16,18 +8,28 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-import wang.excel.advanced.compose.iwf.WorkbookProcess;
-import wang.excel.advanced.compose.model.WorkbookPart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import wang.excel.combine.iwf.WorkbookProcess;
+import wang.excel.combine.model.WorkbookPart;
 import wang.excel.common.iwf.SheetCopy;
 import wang.excel.common.iwf.WorkbookType;
 import wang.excel.common.iwf.impl.SimpleSheetCopy;
-import wang.excel.common.model.ResultSuper;
+import wang.model.ResultSuper;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 组合拼接workbook
  */
-public class ExcelComposeServer {
+public class ExcelCombineServer {
+	private static final Logger log = LoggerFactory.getLogger(ExcelCombineServer.class);
 
 	/**
 	 * 成员
@@ -44,12 +46,12 @@ public class ExcelComposeServer {
 	 */
 	private boolean ignoreBuildException = false;
 
-	public ExcelComposeServer(List<WorkbookPart> parts, WorkbookType workbookType) {
+	public ExcelCombineServer(List<WorkbookPart> parts, WorkbookType workbookType) {
 		this.parts = parts;
 		this.workbookType = workbookType;
 	}
 
-	public ExcelComposeServer() {
+	public ExcelCombineServer() {
 	}
 
 	/**
@@ -58,7 +60,7 @@ public class ExcelComposeServer {
 	 * @param part
 	 * @return
 	 */
-	public ExcelComposeServer addPart(WorkbookPart part) {
+	public ExcelCombineServer addPart(WorkbookPart part) {
 		if (parts == null) {
 			parts = new ArrayList<>();
 		}
@@ -74,7 +76,7 @@ public class ExcelComposeServer {
 	 * @return 拼接结果
 	 * @throws 线程阻断异常,工作簿构建异常,sheet复制异常
 	 */
-	public Workbook compose() throws WorkbookProcess.WorkbookBuildException, SimpleSheetCopy.SheetCopyException {
+	public Workbook combine() throws WorkbookProcess.WorkbookBuildException, SimpleSheetCopy.SheetCopyException {
 		// 定义结果
 		Workbook workbook;
 		switch (workbookType) {
@@ -115,7 +117,7 @@ public class ExcelComposeServer {
 				throw new WorkbookProcess.WorkbookBuildException(ok.getErrMsg());
 			}
 			// 拼接工作簿
-			doCompose(workbook);
+			doCombine(workbook);
 
 		}
 		return workbook;
@@ -127,7 +129,7 @@ public class ExcelComposeServer {
 	 * @param workbook 原始工作簿
 	 * @throws Exception 复制表格异常
 	 */
-	private void doCompose(Workbook workbook) throws SimpleSheetCopy.SheetCopyException {
+	private void doCombine(Workbook workbook) throws SimpleSheetCopy.SheetCopyException {
 		Set<String> names = new HashSet<>();
 		// 复制拼接
 		for (WorkbookPart part : parts) {
@@ -248,7 +250,7 @@ public class ExcelComposeServer {
 		while (iterator.hasNext()) {
 			WorkbookPart part = iterator.next();
 			// 验证
-			boolean can = validatePart(part);
+			boolean can = checkPart(part);
 			if (can) {
 				WorkbookProcess workbookBuilder = part.getWorkbookProcess();
 				// 构建代理
@@ -266,7 +268,7 @@ public class ExcelComposeServer {
 	 * @param part
 	 * @return
 	 */
-	private boolean validatePart(WorkbookPart part) {
+	private boolean checkPart(WorkbookPart part) {
 		return part != null && part.getWorkbookProcess() != null && part.getSheetCopy() != null;
 	}
 
@@ -297,7 +299,7 @@ public class ExcelComposeServer {
 	/**
 	 * 拦截获取workbook
 	 */
-	private class WrapWorkbookProcess implements InvocationHandler {
+	private static class WrapWorkbookProcess implements InvocationHandler {
 		private final WorkbookProcess workbookProcess;
 		private Workbook workbook;
 
@@ -314,7 +316,7 @@ public class ExcelComposeServer {
 					try {
 						workbook = (Workbook) method.invoke(workbookProcess);
 					} catch (Exception e) {
-						System.out.println("创建workbook失败" + e.getMessage());
+						log.error("创建workbook失败,msg:{}",e.getMessage());
 					}
 					return workbook;
 				}

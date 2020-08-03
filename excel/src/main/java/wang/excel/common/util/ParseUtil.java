@@ -19,7 +19,7 @@ import java.util.*;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ParseUtil {
 
-	private static final String[] nullStrArr = new String[] { "空", "无", "null", "/", "-" };
+	private static final String[] commonNullStrArr = new String[] { "空", "无", "null", "/", "-" };
 
 	/**
 	 * 将可能不符合规范的字符串尽量解析成 形如 yyyy/MM/dd形似的字符串 并返回(只支持到天)
@@ -499,7 +499,7 @@ public class ParseUtil {
 	 * @return
 	 */
 	private static String[] commonNullStrArr() {
-		return nullStrArr;
+		return commonNullStrArr;
 	}
 
 }

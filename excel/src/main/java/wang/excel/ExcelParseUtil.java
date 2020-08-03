@@ -1,14 +1,13 @@
 package wang.excel;
 
-import java.io.InputStream;
-
 import org.springframework.util.Assert;
-
 import wang.excel.common.model.ParseOneResult;
 import wang.excel.common.model.ParseResult;
 import wang.excel.normal.parse.NormalParseServer;
 import wang.excel.normal.parse.iwf.Sheet2ParseParam;
 import wang.excel.template.parse.ExcelTemplateParseServer;
+
+import java.io.InputStream;
 
 /**
  * 解析
@@ -27,7 +26,7 @@ public class ExcelParseUtil {
 	 * @param <E>
 	 * @return
 	 */
-	public static <E> ParseResult<E> beanTemplateParse(ExcelTemplateParseServer server, InputStream resource, Class<E> typeClass) {
+	public static <E> ParseResult<E> templateParse(ExcelTemplateParseServer server, InputStream resource, Class<E> typeClass) {
 		try {
 			Assert.notNull(resource, "必要参数,源不可为空");
 			Assert.notNull(server, "必要参数,解析实现不可为空");

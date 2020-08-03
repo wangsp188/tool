@@ -1,10 +1,5 @@
 package wang.excel;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -12,9 +7,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.util.Assert;
-
-import wang.excel.advanced.compose.ExcelComposeServer;
-import wang.excel.advanced.compose.model.WorkbookPart;
+import wang.excel.combine.ExcelCombineServer;
+import wang.excel.combine.model.WorkbookPart;
 import wang.excel.common.iwf.ProduceConvert;
 import wang.excel.common.iwf.WorkbookType;
 import wang.excel.common.model.BaseListProduceParam;
@@ -22,6 +16,11 @@ import wang.excel.normal.produce.ExcelNormalProduceServer;
 import wang.excel.normal.produce.iwf.SheetModule;
 import wang.excel.normal.produce.iwf.impl.*;
 import wang.excel.template.produce.ExcelTemplateProduceServer;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -165,7 +164,6 @@ public class ExcelProduceUtil {
 	 * @param data   数据
 	 * @param title  表格标题
 	 * @param keys   map中的哪些key
-	 * @param titles map中key对应的标题
 	 * @param params map中key对应的构建参数
 	 */
 	public static Workbook mapProduce(List<Map<String, Object>> data, String title, String[] keys, Map<String, BaseListProduceParam> params) {
@@ -182,7 +180,7 @@ public class ExcelProduceUtil {
 	 * @param wrapO2CellMap 修饰map 如果修饰主实体,key是空字符串
 	 * @param <T>
 	 */
-	public static <T> Workbook nestlistProduce(List<T> data, Class<T> type, String title, Map<String, WrapO2CellMiddleware<T>> wrapO2CellMap) {
+	public static <T> Workbook nestListProduce(List<T> data, Class<T> type, String title, Map<String, WrapO2CellMiddleware<T>> wrapO2CellMap) {
 		SheetModule module = new SimpleBeanSheetModule<>(type, data, title, null, new ArrayList<>(), wrapO2CellMap);
 		return new ExcelNormalProduceServer(module).produce();
 	}
@@ -193,9 +191,9 @@ public class ExcelProduceUtil {
 	 * @param workbooks 工作簿源数组
 	 * @return
 	 */
-	public static Workbook composeWorkbook(Workbook... workbooks) {
+	public static Workbook combineWorkbook(Workbook... workbooks) {
 		try {
-			ExcelComposeServer server = new ExcelComposeServer();
+			ExcelCombineServer server = new ExcelCombineServer();
 			if (workbooks != null) {
 				Class cz = null;
 				WorkbookType type = null;
@@ -221,8 +219,8 @@ public class ExcelProduceUtil {
 					server.setWorkbookType(type);
 				}
 			}
-			// 构建
-			return server.compose();
+			// 合并
+			return server.combine();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

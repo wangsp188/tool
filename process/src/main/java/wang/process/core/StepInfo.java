@@ -1,6 +1,6 @@
 package wang.process.core;
 
-import wang.util.SafeMap;
+import wang.model.SafeMap;
 
 /**
  * @Description 记录操作细节

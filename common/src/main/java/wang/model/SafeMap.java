@@ -1,4 +1,4 @@
-package wang.util;
+package wang.model;
 
 import java.util.concurrent.ConcurrentHashMap;
 

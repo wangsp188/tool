@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import wang.process.core.*;
-import wang.util.Container;
+import wang.model.Container;
 
 /**
  * 任务执行添加监听器的包装类

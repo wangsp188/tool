@@ -5,6 +5,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.SetUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import wang.excel.common.iwf.ProduceConvert;
@@ -35,6 +37,7 @@ import java.util.regex.Pattern;
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class ExcelTemplateProduceServer {
+	private static final Logger log = LoggerFactory.getLogger(ExcelTemplateProduceServer.class);
 
 	/**
 	 * 匹配正则,类似于 #{wo.ni[1].ta} 中间可以带些空格
@@ -128,12 +131,12 @@ public class ExcelTemplateProduceServer {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			log.error("构建失败,msg:{}",e.getMessage());
 			return null;
 		} finally {
 			try {
 				templateIs.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (IOException ignore) {
 			}
 		}
 		return resultWb;
@@ -290,6 +293,7 @@ public class ExcelTemplateProduceServer {
 			Field currentField = ReflectionUtils.findField(currentType, main);
 			return ProduceUtil.field2BaseProduceParam(currentField);
 		} catch (Exception e) {
+			log.warn("推断参数失败,{}",e.getMessage());
 		}
 		return param;
 	}
@@ -310,8 +314,8 @@ public class ExcelTemplateProduceServer {
 			} else {
 				current = o.get(in);
 			}
-		} catch (Exception e1) {
-			throw new RuntimeException("获取集合属性失败,实体:" + current + "属性:" + main + ",信息" + e1.getMessage());
+		} catch (Exception e) {
+			throw new RuntimeException("获取集合属性失败,实体:" + current + "属性:" + main + ",信息" + e.getMessage());
 		}
 		return current;
 	}
@@ -370,7 +374,7 @@ public class ExcelTemplateProduceServer {
 	 */
 	private Set<String> matchAndReturn(String templateVal, boolean removePrefixAndSuffixAndBlank) {
 		Matcher mr = ExcelTemplateProduceServer.allMatch.matcher(templateVal);
-		Set<String> set = new HashSet<String>();
+		Set<String> set = new HashSet<>();
 		while (mr.find()) {
 			String value = mr.group();
 			if (removePrefixAndSuffixAndBlank) {
