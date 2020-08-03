@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Date 2020-08-03
  */
 public class VerifyResult extends ResultSuper {
-    private final Map<String, String> errs = new ConcurrentHashMap<>();
+    private final Map<String, PassStatus> passInfo = new ConcurrentHashMap<>();
 
 
 
@@ -25,7 +25,7 @@ public class VerifyResult extends ResultSuper {
         super(errMsg);
     }
 
-    public Map<String, String> getErrs() {
-        return errs;
+    public Map<String, PassStatus> getPassInfo() {
+        return passInfo;
     }
 }

@@ -2,8 +2,12 @@ package wang.rule;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import wang.util.BitUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Description
@@ -13,16 +17,14 @@ import java.util.*;
 public class RuleEngine {
     private static final Logger log = LoggerFactory.getLogger(RuleEngine.class);
 
-    /**
-     * 最小成功数
-     */
-    private int leastPass = 1;
+    //是否并发执行符号位
+    private static final int concurrentlyBit = 1<<9;
 
     /**
-     * 是否采用多线程执行
+     * 32位二进制保存常用属性
+     * 前8位保存需要通过数
      */
-    private boolean multiThread;
-
+    private String bit = BitUtil.int2BitStr(0);
 
     /**
      * 规则集合
@@ -55,13 +57,16 @@ public class RuleEngine {
             return new VerifyResult("校验规则不合规范:"+e.getMessage());
         }
         VerifyResult result = new VerifyResult();
-        Map<String, String> errs = result.getErrs();
+        Map<String, PassStatus> passInfo = result.getPassInfo();
+
         for (Rule rule : rules) {
+            String ruleName = rule.name();
             try {
                 rule.verify(verified);
+                passInfo.put(ruleName, PassStatus.pass());
             } catch (Exception e) {
-                log.error("rule{}验证失败:{}",rule.name(),e.getMessage());
-                errs.put(rule.name(), e.getMessage());
+                log.error("rule{}验证失败:{}", ruleName,e.getMessage());
+                passInfo.put(ruleName, PassStatus.reject(e.getMessage()));
             }
         }
         return result;
@@ -76,19 +81,35 @@ public class RuleEngine {
         if (rules.stream().anyMatch(o->o==null || o.name()==null || !names.add(o.name()))) {
             throw new IllegalArgumentException("rule不可为空且name不可重复");
         }
-
-
-
-
-
     }
 
     public int getLeastPass() {
-        return leastPass;
+        return Integer.parseInt(bit.substring(0, 8),2);
     }
 
     public void setLeastPass(int leastPass) {
-        this.leastPass = leastPass;
+        if(leastPass<=0){
+            throw new IllegalArgumentException("最小通过数不可小于0");
+        }
+        this.bit = BitUtil.int2BitStr(leastPass,8) + bit.substring(8);
+    }
+
+    public boolean isConcurrently() {
+        return (Integer.parseInt(bit,2) & concurrentlyBit) >0;
+    }
+
+    public void setConcurrently(boolean concurrently) {
+        if(concurrently==isConcurrently()){
+            return;
+        }
+        int result = Integer.parseInt(bit, 2);
+        if(concurrently){
+            result = result | concurrentlyBit;
+        }else{
+            result = result & ~(concurrentlyBit);
+        }
+
+        this.bit = BitUtil.int2BitStr(result);
     }
 
     public List<Rule> getRules() {

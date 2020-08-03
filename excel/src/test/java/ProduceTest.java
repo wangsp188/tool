@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import wang.excel.ExcelProduceUtil;
 import wang.excel.common.iwf.ImgProduceStrategy;
+import wang.excel.common.iwf.WorkbookType;
 import wang.excel.common.model.BaseListProduceParam;
 import wang.excel.common.model.CellData;
 import wang.excel.normal.produce.ExcelNormalProduceServer;
@@ -13,15 +14,13 @@ import wang.excel.normal.produce.iwf.SheetModule;
 import wang.excel.normal.produce.iwf.WrapO2CellData;
 import wang.excel.normal.produce.iwf.impl.SimpleBeanSheetModule;
 import wang.excel.normal.produce.iwf.impl.WrapO2CellMiddleware;
+import wang.util.PrintUtil;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ProduceTest {
 
@@ -226,6 +225,25 @@ public class ProduceTest {
 		paramMap.put("age", new BaseListProduceParam("不知道啥"));
 
 		workbook = ExcelProduceUtil.mapProduce(data, "map导出", new String[] { "name", "age" }, paramMap);
+
+	}
+
+	@Test
+	public void t8(){
+		ArrayList<Person> objects = new ArrayList<>();
+
+		for (int i = 0; i < 1000000; i++) {
+			objects.add(new Person("i" + 0, i, Sex.man
+			));
+		}
+
+		Date date = new Date();
+		SheetModule module = new SimpleBeanSheetModule<>( Person.class,objects, "woshishui");
+		ExcelNormalProduceServer server = new ExcelNormalProduceServer(module);
+		server.setWorkbookType(WorkbookType.XSSF);
+		workbook =  server.produce();
+		System.out.println(PrintUtil.interval(date));
+
 
 	}
 

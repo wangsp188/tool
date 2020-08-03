@@ -77,21 +77,6 @@ public class CommonUtil {
 	}
 
 	/**
-	 * 将整型数字转换为二进制字符串，一共32位，不舍弃前面的0
-	 *
-	 * @param number 整型数字
-	 * @return 二进制字符串
-	 */
-	public static String int2BitStr(int number) {
-		StringBuilder sBuilder = new StringBuilder();
-		for (int i = 0; i < 32; i++) {
-			sBuilder.append(number & 1);
-			number = number >>> 1;
-		}
-		return sBuilder.reverse().toString();
-	}
-
-	/**
 	 * 数组,集合,整数,字符串的转换 结果都是对象
 	 *
 	 * @param resource    原数据 可以是 字符串,数组,集合()

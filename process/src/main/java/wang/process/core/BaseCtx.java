@@ -1,7 +1,7 @@
 package wang.process.core;
 
 import wang.model.SafeMap;
-import wang.util.CommonUtil;
+import wang.util.BitUtil;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +47,7 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 
 	{
 		// 默认状态
-		put(key_status, CommonUtil.int2BitStr(0));
+		put(key_status, BitUtil.int2BitStr(0));
 
 		// 初始化traceId
 		put(key_traceId, UUID.randomUUID().toString());
@@ -68,8 +68,7 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	 * @return
 	 */
 	int getStatus() {
-		Integer integer = Integer.valueOf((String) get(key_status), 2);
-		return integer == null ? 0 : integer;
+		return Integer.parseInt((String) get(key_status), 2);
 	}
 
 	/**
@@ -78,7 +77,7 @@ public abstract class BaseCtx extends SafeMap<String, Object> {
 	 * @param status
 	 */
 	void setStatus(int status) {
-		put(key_status, CommonUtil.int2BitStr(status));
+		put(key_status, BitUtil.int2BitStr(status));
 	}
 
 	/**

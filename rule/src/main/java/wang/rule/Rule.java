@@ -16,7 +16,7 @@ public interface Rule {
     /**
      * 验证
      * @param verified
-     * @throws Exception
+     * @throws Exception 验证不通过抛出异常
      */
     void verify(Verified verified) throws Exception;
 
