@@ -1,13 +1,5 @@
 package wang.excel.normal.parse;
 
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Supplier;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -17,7 +9,6 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
-
 import wang.excel.common.iwf.ParseConvert;
 import wang.excel.common.model.*;
 import wang.excel.common.util.ParseUtil;
@@ -30,6 +21,14 @@ import wang.excel.normal.parse.model.TitleFieldParam;
 import wang.model.Container;
 import wang.util.PrintUtil;
 import wang.util.ReflectUtil;
+
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 public class NormalParseServer {
 	private static final Logger log = LoggerFactory.getLogger(NormalParseServer.class);
@@ -122,7 +121,7 @@ public class NormalParseServer {
 								rewriteLocation(sheetResult, sheetResource);
 								result.merge(sheetResult);
 								// 执行完再验一次
-								if (errorCounter.isOver()) {
+								if (errorCounter.isOver() ) {
 									outErrorFuture.complete(null);
 								}
 							}
@@ -134,6 +133,7 @@ public class NormalParseServer {
 									errorCounter.occurError(1);
 								} catch (ErrorCounter.OutErrorException ignore) {
 									outErrorFuture.complete(null);
+
 								}
 							}
 							return null;

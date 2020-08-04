@@ -22,5 +22,6 @@ public interface Rule {
 
     default int order(){
         return Integer.MAX_VALUE - 100;
-    };
+    }
+
 }

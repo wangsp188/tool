@@ -1,5 +1,14 @@
 package wang.process.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import wang.process.filter.After;
+import wang.process.filter.TaskFilter;
+import wang.process.util.ProcessUtil;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -8,16 +17,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
-import wang.process.filter.After;
-import wang.process.filter.TaskFilter;
-import wang.process.util.ProcessUtil;
 
 /**
  * @Description 批量执行Process
@@ -56,7 +55,7 @@ public class CombineExecutor implements Executor<CombineProcess> {
 	/**
 	 * 验证是否通过
 	 *
-	 * @throws RuntimeException 验证失败
+	 * @throws RuntimeException 验证不通过
 	 */
 	private void validate(CombineProcess process) throws RuntimeException {
 		Assert.notNull(process, "process不可为空");

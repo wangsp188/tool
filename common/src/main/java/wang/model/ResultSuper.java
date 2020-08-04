@@ -41,6 +41,6 @@ public class ResultSuper {
 
 	@Override
 	public String toString() {
-		return errMsg == null ? "true" : errMsg;
+		return errMsg == null ? "ResultSuper:true" : ("ResultSuper:"+errMsg);
 	}
 }
