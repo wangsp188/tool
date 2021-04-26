@@ -31,7 +31,7 @@
         <commons-collections.version>3.2.2</commons-collections.version>
         <!--工具 -->
         <commons-lang.version>2.6</commons-lang.version>
-        <commons-io.version>2.6</commons-io.version>
+        <commons-io.version>2.7</commons-io.version>
         <jodd.version>3.3.7</jodd.version>
     </properties>
 
