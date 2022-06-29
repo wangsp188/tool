@@ -15,7 +15,7 @@
 
     <properties>
         <!--excel -->
-        <poi.version>3.9</poi.version>
+        <poi.version>4.1.1</poi.version>
         <jmimemagic.version>0.1.4</jmimemagic.version>
     </properties>
 
